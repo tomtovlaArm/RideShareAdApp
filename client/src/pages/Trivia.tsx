@@ -63,9 +63,22 @@ export default function Trivia() {
         
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-display font-bold text-white">Trivia</h2>
-            <div className="px-3 py-1 bg-neutral-800 rounded-full border border-neutral-700">
-                <span className="text-xs text-neutral-400">Score: <span className="text-white font-bold">{score}</span></span>
+            <div>
+              <h2 className="text-xl font-display font-bold text-white">Trivia</h2>
+              <p className="text-xs text-neutral-400">Powered by AI</p>
+            </div>
+            <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="rounded-full w-8 h-8 border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-white"
+                  onClick={() => alert("To connect the real AI generator, we need to upgrade to a full-stack app!")}
+                >
+                  <RefreshCcw size={14} />
+                </Button>
+                <div className="px-3 py-1 bg-neutral-800 rounded-full border border-neutral-700 flex items-center">
+                    <span className="text-xs text-neutral-400">Score: <span className="text-white font-bold">{score}</span></span>
+                </div>
             </div>
         </div>
 
