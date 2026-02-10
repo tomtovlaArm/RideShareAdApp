@@ -12,8 +12,8 @@ interface PodFrameProps {
 export function PodFrame({ children, className, onBack, showBack }: PodFrameProps) {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-neutral-900 p-4 font-sans text-white">
-      {/* Device Body */}
-      <div className="relative w-full max-w-[400px] h-[800px] bg-neutral-800 rounded-[3rem] shadow-2xl border-[6px] border-neutral-700 overflow-hidden flex flex-col">
+      {/* Device Body - responsive for landscape iPad */}
+      <div className="relative w-full max-w-[400px] h-[800px] landscape:max-w-[900px] landscape:h-[600px] bg-neutral-800 rounded-[3rem] shadow-2xl border-[6px] border-neutral-700 overflow-hidden flex flex-col">
         {/* Status Bar */}
         <div className="h-8 w-full bg-black/40 flex items-center justify-between px-6 text-xs font-medium text-neutral-400 z-10 shrink-0">
           <span>9:41</span>

@@ -21,29 +21,30 @@ export default function Home() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="h-full w-full flex flex-col p-6 space-y-4"
+        className="h-full w-full flex flex-col p-6 space-y-4 landscape:flex-row landscape:space-y-0 landscape:gap-6"
       >
-        {/* Header */}
-        <div className="space-y-0.5">
-          <h2 className="text-neutral-400 text-xs font-medium uppercase tracking-wider">Welcome Rider</h2>
-          <h1 className="text-2xl font-display font-bold text-white">Dashboard</h1>
+        {/* Left Column: Header + Featured Card */}
+        <div className="flex flex-col space-y-4 landscape:flex-1 landscape:min-w-0">
+          <div className="space-y-0.5">
+            <h2 className="text-neutral-400 text-xs font-medium uppercase tracking-wider">Welcome Rider</h2>
+            <h1 className="text-2xl font-display font-bold text-white">Dashboard</h1>
+          </div>
+
+          <Link href="/ads" className="block landscape:flex-1">
+            <div className="w-full aspect-[3/4] landscape:aspect-auto landscape:h-full rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 p-5 relative overflow-hidden group cursor-pointer">
+              <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+              <div className="absolute bottom-5 left-5 z-10">
+                <span className="bg-white/10 backdrop-blur-md px-2 py-1 rounded-md text-xs font-medium text-white mb-2 inline-block">Sponsored</span>
+                <h3 className="text-xl font-bold text-white">Exclusive Offers</h3>
+                <p className="text-neutral-300 text-sm">Discover premium brands while you ride.</p>
+              </div>
+            </div>
+          </Link>
         </div>
 
-        {/* Featured Card */}
-        <Link href="/ads">
-          <div className="w-full aspect-[3/4] rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 p-5 relative overflow-hidden group cursor-pointer">
-            <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-            <div className="absolute bottom-5 left-5 z-10">
-              <span className="bg-white/10 backdrop-blur-md px-2 py-1 rounded-md text-xs font-medium text-white mb-2 inline-block">Sponsored</span>
-              <h3 className="text-xl font-bold text-white">Exclusive Offers</h3>
-              <p className="text-neutral-300 text-sm">Discover premium brands while you ride.</p>
-            </div>
-          </div>
-        </Link>
-
-        {/* Menu Grid */}
-        <div className="grid grid-cols-1 gap-1.5">
+        {/* Right Column: Menu Grid */}
+        <div className="flex flex-col gap-1.5 landscape:w-[220px] landscape:justify-center landscape:shrink-0">
           {menuItems.map((item) => (
             <Link key={item.id} href={item.href}>
               <div className="flex items-center p-2 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-lg transition-all active:scale-[0.98] cursor-pointer group">
@@ -58,7 +59,6 @@ export default function Home() {
             </Link>
           ))}
           
-          {/* Volume Control Button */}
           <div 
             onClick={() => setShowVolume(true)}
             className="flex items-center p-2 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-lg transition-all active:scale-[0.98] cursor-pointer group"
