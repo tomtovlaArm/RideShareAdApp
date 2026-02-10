@@ -47,14 +47,14 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-2">
           {menuItems.map((item) => (
             <Link key={item.id} href={item.href}>
-              <div className="flex items-center p-3 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-xl transition-all active:scale-[0.98] cursor-pointer group">
-                <div className={`w-10 h-10 rounded-lg ${item.color} flex items-center justify-center text-white shadow-lg`}>
-                  <item.icon size={20} />
+              <div className="flex items-center p-2.5 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-xl transition-all active:scale-[0.98] cursor-pointer group">
+                <div className={`w-8 h-8 rounded-lg ${item.color} flex items-center justify-center text-white shadow-lg`}>
+                  <item.icon size={16} />
                 </div>
-                <div className="ml-4 flex-1">
-                  <h3 className="text-base font-semibold text-white group-hover:text-blue-400 transition-colors">{item.title}</h3>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{item.title}</h3>
                 </div>
-                <ChevronRight size={18} className="text-neutral-600 group-hover:text-white transition-colors" />
+                <ChevronRight size={16} className="text-neutral-600 group-hover:text-white transition-colors" />
               </div>
             </Link>
           ))}
@@ -62,15 +62,15 @@ export default function Home() {
           {/* Volume Control Button */}
           <div 
             onClick={() => setShowVolume(true)}
-            className="flex items-center p-3 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-xl transition-all active:scale-[0.98] cursor-pointer group"
+            className="flex items-center p-2.5 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-xl transition-all active:scale-[0.98] cursor-pointer group"
           >
-            <div className="w-10 h-10 rounded-lg bg-neutral-500 flex items-center justify-center text-white shadow-lg">
-              <Volume2 size={20} />
+            <div className="w-8 h-8 rounded-lg bg-neutral-500 flex items-center justify-center text-white shadow-lg">
+              <Volume2 size={16} />
             </div>
-            <div className="ml-4 flex-1">
-              <h3 className="text-base font-semibold text-white group-hover:text-blue-400 transition-colors">Volume</h3>
+            <div className="ml-3 flex-1">
+              <h3 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">Volume</h3>
             </div>
-            <ChevronRight size={18} className="text-neutral-600 group-hover:text-white transition-colors" />
+            <ChevronRight size={16} className="text-neutral-600 group-hover:text-white transition-colors" />
           </div>
         </div>
 
