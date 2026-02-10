@@ -39,17 +39,17 @@ export default function Home() {
         </Link>
 
         {/* Menu Grid */}
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-2">
           {menuItems.map((item) => (
             <Link key={item.id} href={item.href}>
-              <div className="flex items-center p-4 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-xl transition-all active:scale-[0.98] cursor-pointer group">
-                <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center text-white shadow-lg`}>
-                  <item.icon size={24} />
+              <div className="flex items-center p-3 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-xl transition-all active:scale-[0.98] cursor-pointer group">
+                <div className={`w-10 h-10 rounded-lg ${item.color} flex items-center justify-center text-white shadow-lg`}>
+                  <item.icon size={20} />
                 </div>
                 <div className="ml-4 flex-1">
-                  <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors">{item.title}</h3>
+                  <h3 className="text-base font-semibold text-white group-hover:text-blue-400 transition-colors">{item.title}</h3>
                 </div>
-                <ChevronRight className="text-neutral-600 group-hover:text-white transition-colors" />
+                <ChevronRight size={18} className="text-neutral-600 group-hover:text-white transition-colors" />
               </div>
             </Link>
           ))}

@@ -65,9 +65,9 @@ export default function Music() {
                         className="flex-1 flex flex-col"
                     >
                         {/* Album Art */}
-                        <div className="flex-1 flex items-center justify-center py-4">
+                        <div className="flex-1 flex items-center justify-center py-2">
                             <div className={cn(
-                                "relative w-64 h-64 rounded-2xl shadow-2xl overflow-hidden border border-white/10 transition-transform duration-700 ease-in-out",
+                                "relative w-48 h-48 rounded-2xl shadow-2xl overflow-hidden border border-white/10 transition-transform duration-700 ease-in-out",
                                 isPlaying ? "scale-100" : "scale-95"
                             )}>
                                 <img 
@@ -81,20 +81,20 @@ export default function Music() {
                         </div>
 
                         {/* Track Info */}
-                        <div className="mb-8 space-y-1">
+                        <div className="mb-6 space-y-1">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h1 className="text-2xl font-bold text-white mb-1 font-display">{currentTrack.title}</h1>
-                                    <p className="text-lg text-neutral-400 font-medium">{currentTrack.artist}</p>
+                                    <h1 className="text-xl font-bold text-white mb-1 font-display">{currentTrack.title}</h1>
+                                    <p className="text-sm text-neutral-400 font-medium">{currentTrack.artist}</p>
                                 </div>
                                 <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-pink-500 transition-colors">
-                                    <Heart size={24} />
+                                    <Heart size={20} />
                                 </Button>
                             </div>
                         </div>
 
                         {/* Progress */}
-                        <div className="mb-8 space-y-2">
+                        <div className="mb-6 space-y-2">
                             <Slider 
                                 value={[progress]} 
                                 max={100} 
@@ -109,20 +109,20 @@ export default function Music() {
                         </div>
 
                         {/* Controls */}
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-4 px-4">
                             <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white" onClick={prevTrack}>
-                                <SkipBack size={32} />
+                                <SkipBack size={24} />
                             </Button>
                             
                             <button 
                                 onClick={togglePlay}
-                                className="w-20 h-20 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-white/10"
+                                className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-white/10"
                             >
-                                {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" className="ml-1" />}
+                                {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
                             </button>
 
                             <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white" onClick={nextTrack}>
-                                <SkipForward size={32} />
+                                <SkipForward size={24} />
                             </Button>
                         </div>
 
