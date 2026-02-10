@@ -32,7 +32,7 @@ export default function Home() {
 
         {/* Featured Card */}
         <Link href="/ads">
-          <div className="w-full aspect-[16/9] rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 p-5 relative overflow-hidden group cursor-pointer">
+          <div className="w-full aspect-[4/3] rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 p-5 relative overflow-hidden group cursor-pointer">
             <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute bottom-5 left-5 z-10">
@@ -44,17 +44,17 @@ export default function Home() {
         </Link>
 
         {/* Menu Grid */}
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 gap-1.5">
           {menuItems.map((item) => (
             <Link key={item.id} href={item.href}>
-              <div className="flex items-center p-2.5 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-xl transition-all active:scale-[0.98] cursor-pointer group">
-                <div className={`w-8 h-8 rounded-lg ${item.color} flex items-center justify-center text-white shadow-lg`}>
-                  <item.icon size={16} />
+              <div className="flex items-center p-2 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-lg transition-all active:scale-[0.98] cursor-pointer group">
+                <div className={`w-7 h-7 rounded-md ${item.color} flex items-center justify-center text-white shadow-lg`}>
+                  <item.icon size={14} />
                 </div>
-                <div className="ml-3 flex-1">
-                  <h3 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{item.title}</h3>
+                <div className="ml-2.5 flex-1">
+                  <h3 className="text-xs font-semibold text-white group-hover:text-blue-400 transition-colors">{item.title}</h3>
                 </div>
-                <ChevronRight size={16} className="text-neutral-600 group-hover:text-white transition-colors" />
+                <ChevronRight size={14} className="text-neutral-600 group-hover:text-white transition-colors" />
               </div>
             </Link>
           ))}
@@ -62,15 +62,15 @@ export default function Home() {
           {/* Volume Control Button */}
           <div 
             onClick={() => setShowVolume(true)}
-            className="flex items-center p-2.5 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-xl transition-all active:scale-[0.98] cursor-pointer group"
+            className="flex items-center p-2 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-lg transition-all active:scale-[0.98] cursor-pointer group"
           >
-            <div className="w-8 h-8 rounded-lg bg-neutral-500 flex items-center justify-center text-white shadow-lg">
-              <Volume2 size={16} />
+            <div className="w-7 h-7 rounded-md bg-neutral-500 flex items-center justify-center text-white shadow-lg">
+              <Volume2 size={14} />
             </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">Volume</h3>
+            <div className="ml-2.5 flex-1">
+              <h3 className="text-xs font-semibold text-white group-hover:text-blue-400 transition-colors">Volume</h3>
             </div>
-            <ChevronRight size={16} className="text-neutral-600 group-hover:text-white transition-colors" />
+            <ChevronRight size={14} className="text-neutral-600 group-hover:text-white transition-colors" />
           </div>
         </div>
 
