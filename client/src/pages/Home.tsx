@@ -1,23 +1,28 @@
+import { useState } from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { ShoppingBag, Brain, Music, Settings, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShoppingBag, Brain, Music, Settings, ChevronRight, Volume2, X } from "lucide-react";
 import { PodFrame } from "@/components/layout/PodFrame";
+import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 
 const menuItems = [
   { id: "ads", title: "Marketplace", icon: ShoppingBag, color: "bg-blue-500", href: "/ads" },
   { id: "trivia", title: "Trivia Challenge", icon: Brain, color: "bg-purple-500", href: "/trivia" },
   { id: "music", title: "My Music", icon: Music, color: "bg-pink-500", href: "/music" },
-  { id: "settings", title: "Settings", icon: Settings, color: "bg-neutral-500", href: "/settings" },
 ];
 
 export default function Home() {
+  const [showVolume, setShowVolume] = useState(false);
+  const [volume, setVolume] = useState(75);
+
   return (
     <PodFrame>
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="h-full w-full flex flex-col p-6 space-y-8"
+        className="h-full w-full flex flex-col p-6 space-y-6"
       >
         {/* Header */}
         <div className="space-y-1">
@@ -53,7 +58,66 @@ export default function Home() {
               </div>
             </Link>
           ))}
+          
+          {/* Volume Control Button */}
+          <div 
+            onClick={() => setShowVolume(true)}
+            className="flex items-center p-3 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-xl transition-all active:scale-[0.98] cursor-pointer group"
+          >
+            <div className="w-10 h-10 rounded-lg bg-neutral-500 flex items-center justify-center text-white shadow-lg">
+              <Volume2 size={20} />
+            </div>
+            <div className="ml-4 flex-1">
+              <h3 className="text-base font-semibold text-white group-hover:text-blue-400 transition-colors">Volume</h3>
+            </div>
+            <ChevronRight size={18} className="text-neutral-600 group-hover:text-white transition-colors" />
+          </div>
         </div>
+
+        {/* Volume Overlay */}
+        <AnimatePresence>
+          {showVolume && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end justify-center"
+              onClick={() => setShowVolume(false)}
+            >
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="w-full bg-neutral-900 rounded-t-[2rem] border-t border-white/10 p-8 pb-12"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-xl font-bold text-white">System Volume</h2>
+                  <button 
+                    onClick={() => setShowVolume(false)}
+                    className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                
+                <div className="flex items-center gap-4 mb-4">
+                  <Volume2 size={24} className="text-neutral-400" />
+                  <Slider
+                    value={[volume]}
+                    max={100}
+                    step={1}
+                    onValueChange={(val) => setVolume(val[0])}
+                    className="flex-1"
+                  />
+                  <span className="w-12 text-right font-mono text-white">{volume}%</span>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </motion.div>
     </PodFrame>
   );
