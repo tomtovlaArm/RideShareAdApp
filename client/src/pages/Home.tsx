@@ -22,17 +22,17 @@ export default function Home() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="h-full w-full flex flex-col p-6 space-y-6"
+        className="h-full w-full flex flex-col p-6 space-y-4"
       >
         {/* Header */}
-        <div className="space-y-1">
-          <h2 className="text-neutral-400 text-sm font-medium uppercase tracking-wider">Welcome Rider</h2>
-          <h1 className="text-3xl font-display font-bold text-white">Dashboard</h1>
+        <div className="space-y-0.5">
+          <h2 className="text-neutral-400 text-xs font-medium uppercase tracking-wider">Welcome Rider</h2>
+          <h1 className="text-2xl font-display font-bold text-white">Dashboard</h1>
         </div>
 
         {/* Featured Card */}
         <Link href="/ads">
-          <div className="w-full aspect-[4/3] rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 p-5 relative overflow-hidden group cursor-pointer">
+          <div className="w-full aspect-[3/4] rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 p-5 relative overflow-hidden group cursor-pointer">
             <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute bottom-5 left-5 z-10">
