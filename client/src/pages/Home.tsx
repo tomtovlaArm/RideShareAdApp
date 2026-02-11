@@ -6,6 +6,7 @@ import { PodFrame } from "@/components/layout/PodFrame";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import QRCode from "react-qr-code";
 import type { Ad } from "@shared/schema";
 
 const menuItems = [
@@ -61,10 +62,14 @@ export default function Home() {
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute bottom-5 left-5 z-10">
-                <span className="bg-white/10 backdrop-blur-md px-2 py-1 rounded-md text-xs font-medium text-white mb-2 inline-block" data-testid="badge-sponsored">Sponsored</span>
                 <h3 className="text-xl font-bold text-white" data-testid="text-featured-name">{featuredAd?.name || "Exclusive Offers"}</h3>
                 <p className="text-neutral-300 text-sm" data-testid="text-featured-description">{featuredAd?.description || "Discover premium brands while you ride."}</p>
               </div>
+              {featuredAd?.qrUrl && (
+                <div className="absolute bottom-4 right-4 z-10 bg-white p-1.5 rounded-lg shadow-lg" data-testid="qr-code-dashboard">
+                  <QRCode value={featuredAd.qrUrl} size={48} />
+                </div>
+              )}
             </div>
           </Link>
         </div>
