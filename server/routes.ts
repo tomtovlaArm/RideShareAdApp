@@ -117,7 +117,16 @@ The correctAnswer MUST exactly match one of the options.`,
     }
   });
 
-  app.post("/api/ads", upload.single("media"), async (req, res) => {
+  const optionalUpload = (req: any, res: any, next: any) => {
+    const contentType = req.headers["content-type"] || "";
+    if (contentType.includes("multipart/form-data")) {
+      upload.single("media")(req, res, next);
+    } else {
+      next();
+    }
+  };
+
+  app.post("/api/ads", optionalUpload, async (req, res) => {
     try {
       let mediaUrl = req.body.mediaUrl || "";
       if (req.file) {
@@ -153,7 +162,7 @@ The correctAnswer MUST exactly match one of the options.`,
     }
   });
 
-  app.put("/api/ads/:id", upload.single("media"), async (req, res) => {
+  app.put("/api/ads/:id", optionalUpload, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string);
       const existing = await storage.getAd(id);

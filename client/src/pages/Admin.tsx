@@ -38,26 +38,38 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
     setSaving(true);
     setError("");
     try {
-      const formData = new FormData();
-      formData.append("name", name);
-      formData.append("brand", brand);
-      formData.append("price", price);
-      formData.append("type", type);
-      formData.append("description", description);
-      formData.append("qrUrl", qrUrl);
-      formData.append("sortOrder", sortOrder);
-      if (mediaFile) {
-        formData.append("media", mediaFile);
-      } else if (mediaUrlInput) {
-        formData.append("mediaUrl", mediaUrlInput);
-      } else if (ad?.mediaUrl) {
-        formData.append("mediaUrl", ad.mediaUrl);
-      }
-
       const url = ad ? `/api/ads/${ad.id}` : "/api/ads";
       const method = ad ? "PUT" : "POST";
+      let res: Response;
 
-      const res = await fetch(url, { method, body: formData });
+      if (mediaFile) {
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("brand", brand);
+        formData.append("price", price);
+        formData.append("type", type);
+        formData.append("description", description);
+        formData.append("qrUrl", qrUrl);
+        formData.append("sortOrder", sortOrder);
+        formData.append("media", mediaFile);
+        res = await fetch(url, { method, body: formData });
+      } else {
+        const jsonBody = {
+          name,
+          brand,
+          price,
+          type,
+          description,
+          qrUrl,
+          sortOrder,
+          mediaUrl: mediaUrlInput || ad?.mediaUrl || "",
+        };
+        res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jsonBody),
+        });
+      }
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || `Failed to save (${res.status})`);
