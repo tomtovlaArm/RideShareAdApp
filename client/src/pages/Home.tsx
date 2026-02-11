@@ -44,34 +44,39 @@ export default function Home() {
             <h1 className="text-2xl font-display font-bold text-white">Dashboard</h1>
           </div>
 
-          <Link href="/ads" className="block flex-1" data-testid="link-featured-ad">
-            <div className="w-full h-full rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 relative overflow-hidden group cursor-pointer">
-              {featuredAd?.type === "video" ? (
-                <video
-                  src={featuredAd.mediaUrl}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                />
-              ) : featuredAd?.mediaUrl ? (
-                <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" style={{ backgroundImage: `url(${featuredAd.mediaUrl})` }} />
-              ) : (
-                <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <div className="absolute bottom-5 left-5 z-10">
-                <h3 className="text-xl font-bold text-white" data-testid="text-featured-name">{featuredAd?.name || "Exclusive Offers"}</h3>
-                <p className="text-neutral-300 text-sm" data-testid="text-featured-description">{featuredAd?.description || "Discover premium brands while you ride."}</p>
-              </div>
-              {featuredAd?.qrUrl && (
-                <div className="absolute bottom-4 right-4 z-10 bg-white p-1.5 rounded-lg shadow-lg" data-testid="qr-code-dashboard">
-                  <QRCode value={featuredAd.qrUrl} size={48} />
+          <div className="flex flex-row flex-1 gap-3 min-h-0">
+            <Link href="/ads" className="block flex-1" data-testid="link-featured-ad">
+              <div className="w-full h-full rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 relative overflow-hidden group cursor-pointer">
+                {featuredAd?.type === "video" ? (
+                  <video
+                    src={featuredAd.mediaUrl}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                ) : featuredAd?.mediaUrl ? (
+                  <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" style={{ backgroundImage: `url(${featuredAd.mediaUrl})` }} />
+                ) : (
+                  <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-5 left-5 z-10">
+                  <h3 className="text-xl font-bold text-white" data-testid="text-featured-name">{featuredAd?.name || "Exclusive Offers"}</h3>
+                  <p className="text-neutral-300 text-sm" data-testid="text-featured-description">{featuredAd?.description || "Discover premium brands while you ride."}</p>
                 </div>
-              )}
-            </div>
-          </Link>
+              </div>
+            </Link>
+            {featuredAd?.qrUrl && (
+              <div className="flex flex-col items-center justify-center shrink-0" data-testid="qr-code-dashboard">
+                <div className="bg-white p-2 rounded-xl shadow-lg">
+                  <QRCode value={featuredAd.qrUrl} size={56} />
+                </div>
+                <p className="text-neutral-500 text-[9px] mt-1.5 text-center uppercase tracking-wider">Scan Me</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right: Menu */}
