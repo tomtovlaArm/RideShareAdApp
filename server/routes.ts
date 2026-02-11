@@ -121,6 +121,7 @@ The correctAnswer MUST exactly match one of the options.`,
         type: req.body.type || "image",
         mediaUrl,
         description: req.body.description,
+        qrUrl: req.body.qrUrl || "",
         sortOrder: parseInt(req.body.sortOrder) || 0,
       };
 
@@ -144,6 +145,7 @@ The correctAnswer MUST exactly match one of the options.`,
       if (req.body.price !== undefined) updateData.price = req.body.price;
       if (req.body.type !== undefined) updateData.type = req.body.type;
       if (req.body.description !== undefined) updateData.description = req.body.description;
+      if (req.body.qrUrl !== undefined) updateData.qrUrl = req.body.qrUrl;
       if (req.body.sortOrder !== undefined) updateData.sortOrder = parseInt(req.body.sortOrder);
       if (req.file) updateData.mediaUrl = `/assets/uploads/${req.file.filename}`;
       else if (req.body.mediaUrl !== undefined) updateData.mediaUrl = req.body.mediaUrl;

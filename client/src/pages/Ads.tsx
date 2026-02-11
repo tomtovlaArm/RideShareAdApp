@@ -5,6 +5,7 @@ import { PodFrame } from "@/components/layout/PodFrame";
 import { ArrowLeft, ArrowRight, ShoppingCart, Play, Pause, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
+import QRCode from "react-qr-code";
 import type { Ad } from "@shared/schema";
 
 function VideoPlayer({ src, isActive }: { src: string; isActive: boolean }) {
@@ -169,6 +170,18 @@ export default function Ads() {
 
             {currentAd.type === "video" && (
               <span className="inline-block mt-3 px-2 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded-md text-blue-400 text-xs font-medium">Video Ad</span>
+            )}
+
+            {currentAd.qrUrl && (
+              <div className="mt-4 flex items-center gap-3" data-testid="qr-code-section">
+                <div className="bg-white p-2 rounded-lg shrink-0">
+                  <QRCode value={currentAd.qrUrl} size={72} data-testid={`qr-code-${currentAd.id}`} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-neutral-500 text-[10px] uppercase tracking-wider font-medium">Scan to visit</p>
+                  <p className="text-neutral-400 text-xs truncate">{currentAd.qrUrl}</p>
+                </div>
+              </div>
             )}
           </div>
 

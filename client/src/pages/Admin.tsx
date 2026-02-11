@@ -12,6 +12,7 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
   const [price, setPrice] = useState(ad?.price || "");
   const [type, setType] = useState<string>(ad?.type || "image");
   const [description, setDescription] = useState(ad?.description || "");
+  const [qrUrl, setQrUrl] = useState(ad?.qrUrl || "");
   const [sortOrder, setSortOrder] = useState(ad?.sortOrder?.toString() || "0");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string>(ad?.mediaUrl || "");
@@ -36,6 +37,7 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
       formData.append("price", price);
       formData.append("type", type);
       formData.append("description", description);
+      formData.append("qrUrl", qrUrl);
       formData.append("sortOrder", sortOrder);
       if (mediaFile) {
         formData.append("media", mediaFile);
@@ -147,6 +149,13 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
             rows={3}
             className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500 resize-none"
             data-testid="input-description"
+          />
+          <input
+            value={qrUrl}
+            onChange={(e) => setQrUrl(e.target.value)}
+            placeholder="QR Code URL (e.g. https://example.com/product)"
+            className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500"
+            data-testid="input-qr-url"
           />
           <input
             value={sortOrder}

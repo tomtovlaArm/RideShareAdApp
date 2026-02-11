@@ -25,6 +25,7 @@ export const ads = pgTable("ads", {
   type: text("type").notNull().default("image"),
   mediaUrl: text("media_url").notNull(),
   description: text("description").notNull(),
+  qrUrl: text("qr_url").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
