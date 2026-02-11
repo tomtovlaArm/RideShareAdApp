@@ -193,26 +193,32 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
             data-testid="input-qr-url"
           />
           <div className="flex gap-3">
-            <input
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              placeholder="Sort order (0 = first)"
-              type="number"
-              className="flex-1 p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500"
-              data-testid="input-sort-order"
-            />
-            <div className="flex-1 relative">
+            <div className="flex-1">
+              <label className="block text-neutral-400 text-xs font-medium mb-1.5">Sort Order</label>
               <input
-                value={displayDuration}
-                onChange={(e) => setDisplayDuration(e.target.value)}
-                placeholder="Display time (seconds)"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                placeholder="0 = first"
                 type="number"
-                min="2"
-                max="60"
                 className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500"
-                data-testid="input-display-duration"
+                data-testid="input-sort-order"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-xs pointer-events-none">sec</span>
+            </div>
+            <div className="flex-1">
+              <label className="block text-neutral-400 text-xs font-medium mb-1.5">Display Time</label>
+              <div className="relative">
+                <input
+                  value={displayDuration}
+                  onChange={(e) => setDisplayDuration(e.target.value)}
+                  placeholder="5"
+                  type="number"
+                  min="2"
+                  max="60"
+                  className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500 pr-12"
+                  data-testid="input-display-duration"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-xs pointer-events-none">sec</span>
+              </div>
             </div>
           </div>
 
