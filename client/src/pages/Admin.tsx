@@ -38,23 +38,26 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
     setSaving(true);
     setError("");
     try {
-      const url = ad ? `/api/ads/${ad.id}` : "/api/ads";
-      const method = ad ? "PUT" : "POST";
-      let res: Response;
+      let finalMediaUrl = mediaUrlInput || ad?.mediaUrl || "";
 
       if (mediaFile) {
-        const formData = new FormData();
-        formData.append("name", name);
-        formData.append("brand", brand);
-        formData.append("price", price);
-        formData.append("type", type);
-        formData.append("description", description);
-        formData.append("qrUrl", qrUrl);
-        formData.append("sortOrder", sortOrder);
-        formData.append("media", mediaFile);
-        res = await fetch(url, { method, body: formData });
-      } else {
-        const jsonBody = {
+        const uploadForm = new FormData();
+        uploadForm.append("media", mediaFile);
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm });
+        if (!uploadRes.ok) {
+          throw new Error("Failed to upload file");
+        }
+        const uploadData = await uploadRes.json();
+        finalMediaUrl = uploadData.url;
+      }
+
+      const url = ad ? `/api/ads/${ad.id}` : "/api/ads";
+      const method = ad ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           name,
           brand,
           price,
@@ -62,14 +65,9 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
           description,
           qrUrl,
           sortOrder,
-          mediaUrl: mediaUrlInput || ad?.mediaUrl || "",
-        };
-        res = await fetch(url, {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(jsonBody),
-        });
-      }
+          mediaUrl: finalMediaUrl,
+        }),
+      });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || `Failed to save (${res.status})`);
