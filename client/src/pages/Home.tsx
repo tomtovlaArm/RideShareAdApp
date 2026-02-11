@@ -31,9 +31,16 @@ export default function Home() {
           </div>
 
           <Link href="/ads" className="block flex-1">
-            <div className="w-full h-full rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 p-5 relative overflow-hidden group cursor-pointer">
-              <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+            <div className="w-full h-full rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 relative overflow-hidden group cursor-pointer">
+              <video
+                src="/assets/ad-video-1.mp4"
+                className="absolute inset-0 w-full h-full object-cover"
+                autoPlay
+                loop
+                muted
+                playsInline
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute bottom-5 left-5 z-10">
                 <span className="bg-white/10 backdrop-blur-md px-2 py-1 rounded-md text-xs font-medium text-white mb-2 inline-block">Sponsored</span>
                 <h3 className="text-xl font-bold text-white">Exclusive Offers</h3>
