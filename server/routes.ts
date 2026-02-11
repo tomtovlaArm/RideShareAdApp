@@ -152,6 +152,7 @@ The correctAnswer MUST exactly match one of the options.`,
         description: req.body.description,
         qrUrl: req.body.qrUrl || "",
         sortOrder: parseInt(req.body.sortOrder) || 0,
+        displayDuration: parseInt(req.body.displayDuration) || 5,
       };
 
       const ad = await storage.createAd(adData);
@@ -176,6 +177,7 @@ The correctAnswer MUST exactly match one of the options.`,
       if (req.body.description !== undefined) updateData.description = req.body.description;
       if (req.body.qrUrl !== undefined) updateData.qrUrl = req.body.qrUrl;
       if (req.body.sortOrder !== undefined) updateData.sortOrder = parseInt(req.body.sortOrder);
+      if (req.body.displayDuration !== undefined) updateData.displayDuration = parseInt(req.body.displayDuration);
       if (req.file) updateData.mediaUrl = isProd ? `/uploads/${req.file.filename}` : `/assets/uploads/${req.file.filename}`;
       else if (req.body.mediaUrl !== undefined) updateData.mediaUrl = req.body.mediaUrl;
 

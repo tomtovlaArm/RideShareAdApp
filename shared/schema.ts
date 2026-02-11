@@ -27,6 +27,7 @@ export const ads = pgTable("ads", {
   description: text("description").notNull(),
   qrUrl: text("qr_url").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
+  displayDuration: integer("display_duration").notNull().default(5),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

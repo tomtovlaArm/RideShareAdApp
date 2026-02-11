@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Music, Gamepad2, ChevronRight, Volume2, X } from "lucide-react";
@@ -18,6 +18,8 @@ const menuItems = [
 export default function Home() {
   const [showVolume, setShowVolume] = useState(false);
   const [volume, setVolume] = useState(75);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: ads = [] } = useQuery<Ad[]>({
     queryKey: ["/api/ads"],
@@ -28,7 +30,43 @@ export default function Home() {
     },
   });
 
-  const featuredAd = ads[0];
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    clearTimer();
+
+    if (ads.length <= 1) return;
+
+    const safeIndex = currentAdIndex < ads.length ? currentAdIndex : 0;
+    const currentAd = ads[safeIndex];
+    const duration = (currentAd?.displayDuration || 5) * 1000;
+
+    timerRef.current = setTimeout(() => {
+      setCurrentAdIndex((prev) => (prev + 1) % ads.length);
+    }, duration);
+
+    return clearTimer;
+  }, [currentAdIndex, ads, clearTimer]);
+
+  useEffect(() => {
+    if (ads.length === 0) {
+      setCurrentAdIndex(0);
+    } else if (currentAdIndex >= ads.length) {
+      setCurrentAdIndex(0);
+    }
+  }, [ads.length, currentAdIndex]);
+
+  const goToAd = useCallback((index: number) => {
+    clearTimer();
+    setCurrentAdIndex(index);
+  }, [clearTimer]);
+
+  const featuredAd = ads.length > 0 ? ads[currentAdIndex < ads.length ? currentAdIndex : 0] : undefined;
 
   return (
     <PodFrame>
@@ -38,7 +76,6 @@ export default function Home() {
         exit={{ opacity: 0, scale: 0.95 }}
         className="h-full w-full flex flex-row p-5 gap-5"
       >
-        {/* Left: Header + Featured Ad Card */}
         <div className="flex flex-col flex-1 min-w-0 gap-3">
           <div className="space-y-0.5 shrink-0">
             <h2 className="text-neutral-400 text-xs font-medium uppercase tracking-wider">Welcome Rider</h2>
@@ -48,25 +85,63 @@ export default function Home() {
           <div className="flex flex-row flex-1 gap-3 min-h-0">
             <Link href="/ads" className="block flex-1" data-testid="link-featured-ad">
               <div className="w-full h-full rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 relative overflow-hidden group cursor-pointer">
-                {featuredAd?.type === "video" ? (
-                  <video
-                    src={featuredAd.mediaUrl}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                  />
-                ) : featuredAd?.mediaUrl ? (
-                  <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" style={{ backgroundImage: `url(${featuredAd.mediaUrl})` }} />
-                ) : (
-                  <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
-                )}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={featuredAd?.id ?? "empty"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="absolute inset-0"
+                  >
+                    {featuredAd?.type === "video" ? (
+                      <video
+                        src={featuredAd.mediaUrl}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                      />
+                    ) : featuredAd?.mediaUrl ? (
+                      <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" style={{ backgroundImage: `url(${featuredAd.mediaUrl})` }} />
+                    ) : (
+                      <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute bottom-5 left-5 z-10">
-                  <h3 className="text-xl font-bold text-white" data-testid="text-featured-name">{featuredAd?.name || "Exclusive Offers"}</h3>
-                  <p className="text-neutral-300 text-sm" data-testid="text-featured-description">{featuredAd?.description || "Discover premium brands while you ride."}</p>
-                </div>
+
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`text-${featuredAd?.id ?? "empty"}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute bottom-5 left-5 right-5 z-10"
+                  >
+                    <h3 className="text-xl font-bold text-white" data-testid="text-featured-name">{featuredAd?.name || "Exclusive Offers"}</h3>
+                    <p className="text-neutral-300 text-sm" data-testid="text-featured-description">{featuredAd?.description || "Discover premium brands while you ride."}</p>
+                  </motion.div>
+                </AnimatePresence>
+
+                {ads.length > 1 && (
+                  <div className="absolute bottom-2 right-3 z-10 flex gap-1.5" data-testid="carousel-dots">
+                    {ads.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); goToAd(i); }}
+                        className={cn(
+                          "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                          i === currentAdIndex ? "bg-white w-4" : "bg-white/40 hover:bg-white/60"
+                        )}
+                        data-testid={`carousel-dot-${i}`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </Link>
             {featuredAd?.qrUrl && (
@@ -80,7 +155,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right: Menu */}
         <div className="flex flex-col gap-2 w-[220px] justify-center shrink-0">
           {menuItems.map((item) => (
             <Link key={item.id} href={item.href} data-testid={`link-menu-${item.id}`}>
@@ -111,7 +185,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Volume Overlay */}
         <AnimatePresence>
           {showVolume && (
             <motion.div

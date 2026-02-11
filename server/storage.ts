@@ -73,6 +73,7 @@ export async function seedDefaultAds() {
       description: "Vape box for 510 and Disposable Pod vapes with sanitary tips.",
       qrUrl: "safevaprbox.com",
       sortOrder: 1,
+      displayDuration: 8,
     },
     {
       name: "Chronos Elite",
@@ -83,6 +84,7 @@ export async function seedDefaultAds() {
       description: "Precision engineering meets timeless elegance. The Chronos Elite is crafted for those who value every second.",
       qrUrl: "",
       sortOrder: 1,
+      displayDuration: 5,
     },
     {
       name: "Sonic Pro X",
@@ -93,6 +95,7 @@ export async function seedDefaultAds() {
       description: "Immerse yourself in pure sound. Active noise cancellation and 40-hour battery life for the longest journeys.",
       qrUrl: "",
       sortOrder: 2,
+      displayDuration: 5,
     },
     {
       name: "Midnight Rose",
@@ -103,6 +106,7 @@ export async function seedDefaultAds() {
       description: "A captivating blend of dark rose, amber, and vanilla. Leave a lasting impression wherever you go.",
       qrUrl: "",
       sortOrder: 3,
+      displayDuration: 6,
     },
   ];
 

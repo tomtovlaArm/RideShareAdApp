@@ -14,6 +14,7 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
   const [description, setDescription] = useState(ad?.description || "");
   const [qrUrl, setQrUrl] = useState(ad?.qrUrl || "");
   const [sortOrder, setSortOrder] = useState(ad?.sortOrder?.toString() || "0");
+  const [displayDuration, setDisplayDuration] = useState(ad?.displayDuration?.toString() || "5");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string>(ad?.mediaUrl || "");
   const [mediaUrlInput, setMediaUrlInput] = useState(ad?.mediaUrl || "");
@@ -65,6 +66,7 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
           description,
           qrUrl,
           sortOrder,
+          displayDuration,
           mediaUrl: finalMediaUrl,
         }),
       });
@@ -190,14 +192,29 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
             className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500"
             data-testid="input-qr-url"
           />
-          <input
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-            placeholder="Sort order (0 = first)"
-            type="number"
-            className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500"
-            data-testid="input-sort-order"
-          />
+          <div className="flex gap-3">
+            <input
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              placeholder="Sort order (0 = first)"
+              type="number"
+              className="flex-1 p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500"
+              data-testid="input-sort-order"
+            />
+            <div className="flex-1 relative">
+              <input
+                value={displayDuration}
+                onChange={(e) => setDisplayDuration(e.target.value)}
+                placeholder="Display time (seconds)"
+                type="number"
+                min="2"
+                max="60"
+                className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500"
+                data-testid="input-display-duration"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 text-xs pointer-events-none">sec</span>
+            </div>
+          </div>
 
           {error && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
@@ -318,7 +335,7 @@ export default function Admin() {
                       {ad.type.toUpperCase()}
                     </span>
                   </div>
-                  <p className="text-neutral-500 text-sm truncate">{ad.brand} {ad.price && `· ${ad.price}`}</p>
+                  <p className="text-neutral-500 text-sm truncate">{ad.brand} {ad.price && `· ${ad.price}`} · {ad.displayDuration || 5}s</p>
                 </div>
 
                 <div className="flex gap-2 shrink-0">
