@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Music, ChevronRight, Volume2, X } from "lucide-react";
+import { Brain, Music, Gamepad2, ChevronRight, Volume2, X } from "lucide-react";
 import { PodFrame } from "@/components/layout/PodFrame";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ import type { Ad } from "@shared/schema";
 const menuItems = [
   { id: "trivia", title: "Trivia Challenge", icon: Brain, color: "bg-purple-500", href: "/trivia" },
   { id: "music", title: "My Music", icon: Music, color: "bg-pink-500", href: "/music" },
+  { id: "games", title: "Mini Games", icon: Gamepad2, color: "bg-emerald-500", href: "/games" },
 ];
 
 export default function Home() {

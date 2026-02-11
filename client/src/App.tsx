@@ -9,6 +9,7 @@ import Ads from "@/pages/Ads";
 import Trivia from "@/pages/Trivia";
 import Music from "@/pages/Music";
 import Admin from "@/pages/Admin";
+import Games from "@/pages/Games";
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/ads" component={Ads} />
       <Route path="/trivia" component={Trivia} />
       <Route path="/music" component={Music} />
+      <Route path="/games" component={Games} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
