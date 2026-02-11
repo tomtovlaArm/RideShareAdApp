@@ -69,11 +69,11 @@ export default function Home() {
               </div>
             </Link>
             {featuredAd?.qrUrl && (
-              <div className="flex flex-col items-center justify-center shrink-0" data-testid="qr-code-dashboard">
+              <div className="flex flex-col items-end justify-end shrink-0 pb-1" data-testid="qr-code-dashboard">
                 <div className="bg-white p-2 rounded-xl shadow-lg">
                   <QRCode value={featuredAd.qrUrl} size={56} />
                 </div>
-                <p className="text-neutral-500 text-[9px] mt-1.5 text-center uppercase tracking-wider">Scan Me</p>
+                <p className="text-neutral-500 text-[9px] mt-1.5 text-center w-full uppercase tracking-wider">Scan Me</p>
               </div>
             )}
           </div>
