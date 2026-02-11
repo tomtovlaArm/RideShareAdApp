@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { PodFrame } from "@/components/layout/PodFrame";
-import { ArrowLeft, ArrowRight, ShoppingCart, Play, Pause, Volume2, VolumeX, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShoppingCart, Play, Pause, Volume2, VolumeX, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
@@ -174,12 +174,46 @@ export default function Ads() {
 
             {currentAd.qrUrl && (
               <div className="mt-4 flex items-center gap-3" data-testid="qr-code-section">
-                <div className="bg-white p-2 rounded-lg shrink-0">
+                <div className="bg-white p-2 rounded-lg shrink-0" id={`qr-wrap-${currentAd.id}`}>
                   <QRCode value={currentAd.qrUrl} size={72} data-testid={`qr-code-${currentAd.id}`} />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-neutral-500 text-[10px] uppercase tracking-wider font-medium">Scan to visit</p>
-                  <p className="text-neutral-400 text-xs truncate">{currentAd.qrUrl}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-neutral-400 text-xs truncate flex-1">{currentAd.qrUrl}</p>
+                    <button
+                      onClick={() => {
+                        const wrap = document.getElementById(`qr-wrap-${currentAd.id}`);
+                        if (!wrap) return;
+                        const svg = wrap.querySelector("svg");
+                        if (!svg) return;
+                        const svgData = new XMLSerializer().serializeToString(svg);
+                        const canvas = document.createElement("canvas");
+                        const size = 512;
+                        canvas.width = size;
+                        canvas.height = size;
+                        const ctx = canvas.getContext("2d");
+                        if (!ctx) return;
+                        ctx.fillStyle = "#ffffff";
+                        ctx.fillRect(0, 0, size, size);
+                        const img = new Image();
+                        img.onload = () => {
+                          const pad = 32;
+                          ctx.drawImage(img, pad, pad, size - pad * 2, size - pad * 2);
+                          const a = document.createElement("a");
+                          a.download = `qr-${currentAd.name.replace(/\s+/g, "-").toLowerCase()}.png`;
+                          a.href = canvas.toDataURL("image/png");
+                          a.click();
+                        };
+                        img.src = "data:image/svg+xml;base64," + btoa(svgData);
+                      }}
+                      className="w-7 h-7 rounded-md bg-neutral-800 hover:bg-neutral-700 flex items-center justify-center text-neutral-400 hover:text-white transition-colors shrink-0"
+                      data-testid={`button-download-qr-${currentAd.id}`}
+                      title="Download QR code"
+                    >
+                      <Download size={13} />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
