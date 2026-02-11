@@ -54,3 +54,60 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+
+export async function seedDefaultAds() {
+  console.log("Checking if ads need seeding...");
+  const existing = await storage.getAllAds();
+  if (existing.length > 0) {
+    console.log(`Found ${existing.length} existing ads, skipping seed`);
+    return;
+  }
+
+  const defaultAds: InsertAd[] = [
+    {
+      name: "Safe VapeBox",
+      brand: "Sponsored",
+      price: "12.99",
+      type: "video",
+      mediaUrl: "/assets/ad-video-1.mp4",
+      description: "Vape box for 510 and Disposable Pod vapes with sanitary tips.",
+      qrUrl: "safevaprbox.com",
+      sortOrder: 1,
+    },
+    {
+      name: "Chronos Elite",
+      brand: "LuxeTime",
+      price: "$4,500",
+      type: "image",
+      mediaUrl: "/assets/ads-watch.png",
+      description: "Precision engineering meets timeless elegance. The Chronos Elite is crafted for those who value every second.",
+      qrUrl: "",
+      sortOrder: 1,
+    },
+    {
+      name: "Sonic Pro X",
+      brand: "AudioTech",
+      price: "$399",
+      type: "image",
+      mediaUrl: "/assets/ads-headphones.png",
+      description: "Immerse yourself in pure sound. Active noise cancellation and 40-hour battery life for the longest journeys.",
+      qrUrl: "",
+      sortOrder: 2,
+    },
+    {
+      name: "Midnight Rose",
+      brand: "Maison Scent",
+      price: "$180",
+      type: "image",
+      mediaUrl: "/assets/ads-perfume.png",
+      description: "A captivating blend of dark rose, amber, and vanilla. Leave a lasting impression wherever you go.",
+      qrUrl: "",
+      sortOrder: 3,
+    },
+  ];
+
+  for (const ad of defaultAds) {
+    await storage.createAd(ad);
+  }
+  console.log("Seeded default ads into database");
+}

@@ -18,6 +18,7 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
   const [mediaPreview, setMediaPreview] = useState<string>(ad?.mediaUrl || "");
   const [mediaUrlInput, setMediaUrlInput] = useState(ad?.mediaUrl || "");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,7 +31,12 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
   };
 
   const handleSubmit = async () => {
+    if (!mediaFile && !mediaUrlInput && !ad?.mediaUrl) {
+      setError("Please upload a file or paste a media URL");
+      return;
+    }
     setSaving(true);
+    setError("");
     try {
       const formData = new FormData();
       formData.append("name", name);
@@ -52,11 +58,15 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
       const method = ad ? "PUT" : "POST";
 
       const res = await fetch(url, { method, body: formData });
-      if (!res.ok) throw new Error("Failed to save");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Failed to save (${res.status})`);
+      }
       onSaved();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setError(err.message || "Failed to save ad");
     } finally {
       setSaving(false);
     }
@@ -178,6 +188,12 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
             className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500"
             data-testid="input-sort-order"
           />
+
+          {error && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
 
           <Button
             onClick={handleSubmit}

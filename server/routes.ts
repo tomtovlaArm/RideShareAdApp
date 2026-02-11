@@ -42,7 +42,7 @@ const upload = multer({
       cb(new Error("Only image and video files are allowed"));
     }
   },
-  limits: { fileSize: 200 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 },
 });
 
 export async function registerRoutes(
@@ -130,6 +130,10 @@ The correctAnswer MUST exactly match one of the options.`,
         return res.status(400).json({ error: "Media file or URL is required" });
       }
 
+      if (!req.body.name || !req.body.brand) {
+        return res.status(400).json({ error: "Name and brand are required" });
+      }
+
       const adData = {
         name: req.body.name,
         brand: req.body.brand,
@@ -151,7 +155,7 @@ The correctAnswer MUST exactly match one of the options.`,
 
   app.put("/api/ads/:id", upload.single("media"), async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       const existing = await storage.getAd(id);
       if (!existing) return res.status(404).json({ error: "Ad not found" });
 
