@@ -1,11 +1,39 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { insertAdSchema } from "@shared/schema";
 import OpenAI from "openai";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+});
+
+const uploadDir = path.join(process.cwd(), "client/public/assets/uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: uploadDir,
+    filename: (_req, file, cb) => {
+      const uniqueName = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
+      cb(null, uniqueName);
+    },
+  }),
+  fileFilter: (_req, file, cb) => {
+    const allowed = /\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i;
+    if (allowed.test(path.extname(file.originalname))) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image and video files are allowed"));
+    }
+  },
+  limits: { fileSize: 200 * 1024 * 1024 },
 });
 
 export async function registerRoutes(
@@ -52,6 +80,100 @@ The correctAnswer MUST exactly match one of the options.`,
     } catch (error) {
       console.error("Error generating trivia:", error);
       res.status(500).json({ error: "Failed to generate trivia questions" });
+    }
+  });
+
+  app.get("/api/ads", async (_req, res) => {
+    try {
+      const allAds = await storage.getAllAds();
+      res.json(allAds);
+    } catch (error) {
+      console.error("Error fetching ads:", error);
+      res.status(500).json({ error: "Failed to fetch ads" });
+    }
+  });
+
+  app.get("/api/ads/:id", async (req, res) => {
+    try {
+      const ad = await storage.getAd(parseInt(req.params.id));
+      if (!ad) return res.status(404).json({ error: "Ad not found" });
+      res.json(ad);
+    } catch (error) {
+      console.error("Error fetching ad:", error);
+      res.status(500).json({ error: "Failed to fetch ad" });
+    }
+  });
+
+  app.post("/api/ads", upload.single("media"), async (req, res) => {
+    try {
+      const mediaUrl = req.file
+        ? `/assets/uploads/${req.file.filename}`
+        : req.body.mediaUrl;
+
+      if (!mediaUrl) {
+        return res.status(400).json({ error: "Media file or URL is required" });
+      }
+
+      const adData = {
+        name: req.body.name,
+        brand: req.body.brand,
+        price: req.body.price || "",
+        type: req.body.type || "image",
+        mediaUrl,
+        description: req.body.description,
+        sortOrder: parseInt(req.body.sortOrder) || 0,
+      };
+
+      const ad = await storage.createAd(adData);
+      res.status(201).json(ad);
+    } catch (error) {
+      console.error("Error creating ad:", error);
+      res.status(500).json({ error: "Failed to create ad" });
+    }
+  });
+
+  app.put("/api/ads/:id", upload.single("media"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const existing = await storage.getAd(id);
+      if (!existing) return res.status(404).json({ error: "Ad not found" });
+
+      const updateData: Record<string, any> = {};
+      if (req.body.name !== undefined) updateData.name = req.body.name;
+      if (req.body.brand !== undefined) updateData.brand = req.body.brand;
+      if (req.body.price !== undefined) updateData.price = req.body.price;
+      if (req.body.type !== undefined) updateData.type = req.body.type;
+      if (req.body.description !== undefined) updateData.description = req.body.description;
+      if (req.body.sortOrder !== undefined) updateData.sortOrder = parseInt(req.body.sortOrder);
+      if (req.file) updateData.mediaUrl = `/assets/uploads/${req.file.filename}`;
+      else if (req.body.mediaUrl !== undefined) updateData.mediaUrl = req.body.mediaUrl;
+
+      const updated = await storage.updateAd(id, updateData);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating ad:", error);
+      res.status(500).json({ error: "Failed to update ad" });
+    }
+  });
+
+  app.delete("/api/ads/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteAd(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting ad:", error);
+      res.status(500).json({ error: "Failed to delete ad" });
+    }
+  });
+
+  app.post("/api/upload", upload.single("media"), async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+      res.json({ url: `/assets/uploads/${req.file.filename}` });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ error: "Failed to upload file" });
     }
   });
 

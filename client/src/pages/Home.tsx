@@ -5,6 +5,8 @@ import { Brain, Music, ChevronRight, Volume2, X } from "lucide-react";
 import { PodFrame } from "@/components/layout/PodFrame";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import type { Ad } from "@shared/schema";
 
 const menuItems = [
   { id: "trivia", title: "Trivia Challenge", icon: Brain, color: "bg-purple-500", href: "/trivia" },
@@ -14,6 +16,17 @@ const menuItems = [
 export default function Home() {
   const [showVolume, setShowVolume] = useState(false);
   const [volume, setVolume] = useState(75);
+
+  const { data: ads = [] } = useQuery<Ad[]>({
+    queryKey: ["/api/ads"],
+    queryFn: async () => {
+      const res = await fetch("/api/ads");
+      if (!res.ok) throw new Error("Failed to load ads");
+      return res.json();
+    },
+  });
+
+  const featuredAd = ads[0];
 
   return (
     <PodFrame>
@@ -32,14 +45,20 @@ export default function Home() {
 
           <Link href="/ads" className="block flex-1">
             <div className="w-full h-full rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 relative overflow-hidden group cursor-pointer">
-              <video
-                src="/assets/ad-video-1.mp4"
-                className="absolute inset-0 w-full h-full object-cover"
-                autoPlay
-                loop
-                muted
-                playsInline
-              />
+              {featuredAd?.type === "video" ? (
+                <video
+                  src={featuredAd.mediaUrl}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
+              ) : featuredAd?.mediaUrl ? (
+                <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" style={{ backgroundImage: `url(${featuredAd.mediaUrl})` }} />
+              ) : (
+                <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute bottom-5 left-5 z-10">
                 <span className="bg-white/10 backdrop-blur-md px-2 py-1 rounded-md text-xs font-medium text-white mb-2 inline-block">Sponsored</span>
