@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { PodFrame } from "@/components/layout/PodFrame";
-import { Play, Pause, SkipBack, SkipForward, Heart, ListMusic, Volume2, Loader2, Music2 } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Heart, ListMusic, Volume2, VolumeX, Volume1, Loader2, Music2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,8 @@ export default function Music() {
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState("chillout");
   const [liked, setLiked] = useState<Set<string>>(new Set());
+  const [volume, setVolume] = useState(80);
+  const [muted, setMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressInterval = useRef<number | null>(null);
 
@@ -83,6 +85,7 @@ export default function Music() {
     }
 
     const audio = new Audio(currentTrack.audioUrl);
+    audio.volume = muted ? 0 : volume / 100;
     audioRef.current = audio;
 
     audio.addEventListener("ended", () => {
@@ -143,6 +146,23 @@ export default function Music() {
     setCurrentTrackIndex(idx);
     setIsPlaying(true);
     setShowPlaylist(false);
+  };
+
+  const changeVolume = (val: number[]) => {
+    const v = val[0];
+    setVolume(v);
+    setMuted(v === 0);
+    if (audioRef.current) {
+      audioRef.current.volume = v / 100;
+    }
+  };
+
+  const toggleMute = () => {
+    const newMuted = !muted;
+    setMuted(newMuted);
+    if (audioRef.current) {
+      audioRef.current.volume = newMuted ? 0 : volume / 100;
+    }
   };
 
   const toggleLike = (id: string) => {
@@ -290,6 +310,21 @@ export default function Music() {
                       <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white" onClick={nextTrack} data-testid="button-next-track">
                         <SkipForward size={22} />
                       </Button>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-3">
+                      <button onClick={toggleMute} className="text-neutral-400 hover:text-white transition-colors" data-testid="button-mute">
+                        {muted || volume === 0 ? <VolumeX size={16} /> : volume < 50 ? <Volume1 size={16} /> : <Volume2 size={16} />}
+                      </button>
+                      <Slider
+                        value={[muted ? 0 : volume]}
+                        max={100}
+                        step={1}
+                        className="w-full cursor-pointer"
+                        onValueChange={changeVolume}
+                        data-testid="slider-volume"
+                      />
+                      <span className="text-[10px] text-neutral-500 font-mono w-7 text-right shrink-0">{muted ? 0 : volume}%</span>
                     </div>
                   </div>
                 </motion.div>
