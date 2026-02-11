@@ -7,6 +7,12 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
@@ -166,6 +172,45 @@ The correctAnswer MUST exactly match one of the options.`,
     } catch (error) {
       console.error("Error deleting ad:", error);
       res.status(500).json({ error: "Failed to delete ad" });
+    }
+  });
+
+  app.get("/api/music/tracks", async (req, res) => {
+    try {
+      const clientId = process.env.JAMENDO_CLIENT_ID;
+      if (!clientId) {
+        return res.status(500).json({ error: "Jamendo API not configured" });
+      }
+
+      const tags = (req.query.tags as string) || "chillout";
+      const limit = Math.min(parseInt(req.query.limit as string) || 10, 20);
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      const apiUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=${clientId}&format=json&limit=${limit}&offset=${offset}&tags=${encodeURIComponent(tags)}&include=musicinfo&audioformat=mp32&order=popularity_total`;
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const response = await fetch(apiUrl, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (!response.ok) throw new Error("Jamendo API error");
+      const data = await response.json();
+
+      const tracks = (data.results || []).map((t: any) => ({
+        id: t.id,
+        title: t.name,
+        artist: t.artist_name,
+        album: t.album_name || "",
+        cover: t.album_image || t.image,
+        duration: formatDuration(t.duration),
+        durationSec: t.duration,
+        audioUrl: t.audio,
+        audioDownload: t.audiodownload,
+      }));
+
+      res.json(tracks);
+    } catch (error) {
+      console.error("Error fetching music:", error);
+      res.status(500).json({ error: "Failed to fetch music" });
     }
   });
 
