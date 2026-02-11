@@ -43,7 +43,7 @@ export default function Home() {
             <h1 className="text-2xl font-display font-bold text-white">Dashboard</h1>
           </div>
 
-          <Link href="/ads" className="block flex-1">
+          <Link href="/ads" className="block flex-1" data-testid="link-featured-ad">
             <div className="w-full h-full rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 relative overflow-hidden group cursor-pointer">
               {featuredAd?.type === "video" ? (
                 <video
@@ -61,9 +61,9 @@ export default function Home() {
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute bottom-5 left-5 z-10">
-                <span className="bg-white/10 backdrop-blur-md px-2 py-1 rounded-md text-xs font-medium text-white mb-2 inline-block">Sponsored</span>
-                <h3 className="text-xl font-bold text-white">Exclusive Offers</h3>
-                <p className="text-neutral-300 text-sm">Discover premium brands while you ride.</p>
+                <span className="bg-white/10 backdrop-blur-md px-2 py-1 rounded-md text-xs font-medium text-white mb-2 inline-block" data-testid="badge-sponsored">Sponsored</span>
+                <h3 className="text-xl font-bold text-white" data-testid="text-featured-name">{featuredAd?.name || "Exclusive Offers"}</h3>
+                <p className="text-neutral-300 text-sm" data-testid="text-featured-description">{featuredAd?.description || "Discover premium brands while you ride."}</p>
               </div>
             </div>
           </Link>
@@ -72,7 +72,7 @@ export default function Home() {
         {/* Right: Menu */}
         <div className="flex flex-col gap-2 w-[220px] justify-center shrink-0">
           {menuItems.map((item) => (
-            <Link key={item.id} href={item.href}>
+            <Link key={item.id} href={item.href} data-testid={`link-menu-${item.id}`}>
               <div className="flex items-center p-2.5 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-lg transition-all active:scale-[0.98] cursor-pointer group">
                 <div className={`w-8 h-8 rounded-md ${item.color} flex items-center justify-center text-white shadow-lg`}>
                   <item.icon size={16} />
@@ -88,6 +88,7 @@ export default function Home() {
           <div 
             onClick={() => setShowVolume(true)}
             className="flex items-center p-2.5 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-lg transition-all active:scale-[0.98] cursor-pointer group"
+            data-testid="button-volume"
           >
             <div className="w-8 h-8 rounded-md bg-neutral-500 flex items-center justify-center text-white shadow-lg">
               <Volume2 size={16} />
@@ -121,6 +122,7 @@ export default function Home() {
                   <button 
                     onClick={() => setShowVolume(false)}
                     className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white"
+                    data-testid="button-close-volume"
                   >
                     <X size={16} />
                   </button>
