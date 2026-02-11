@@ -19,6 +19,15 @@ interface ProductAd {
 const products: ProductAd[] = [
   {
     id: 1,
+    name: "Featured Video",
+    brand: "Sponsored",
+    price: "",
+    type: "video",
+    video: "/assets/ad-video-1.mp4",
+    description: "Watch this exclusive ad brought to you by our sponsors.",
+  },
+  {
+    id: 2,
     name: "Chronos Elite",
     brand: "LuxeTime",
     price: "$4,500",
@@ -27,7 +36,7 @@ const products: ProductAd[] = [
     description: "Precision engineering meets timeless elegance. The Chronos Elite is crafted for those who value every second.",
   },
   {
-    id: 2,
+    id: 3,
     name: "Sonic Pro X",
     brand: "AudioTech",
     price: "$399",
@@ -36,7 +45,7 @@ const products: ProductAd[] = [
     description: "Immerse yourself in pure sound. Active noise cancellation and 40-hour battery life for the longest journeys.",
   },
   {
-    id: 3,
+    id: 4,
     name: "Midnight Rose",
     brand: "Maison Scent",
     price: "$180",
