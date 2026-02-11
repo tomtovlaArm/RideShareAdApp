@@ -18,7 +18,10 @@ const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
-const uploadDir = path.join(process.cwd(), "client/public/assets/uploads");
+const isProd = process.env.NODE_ENV === "production";
+const uploadDir = isProd
+  ? path.join("/tmp", "uploads")
+  : path.join(process.cwd(), "client/public/assets/uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -46,6 +49,10 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  if (isProd) {
+    const express = await import("express");
+    app.use("/uploads", express.default.static(uploadDir));
+  }
   app.get("/api/trivia", async (req, res) => {
     try {
       const count = Math.min(parseInt(req.query.count as string) || 5, 10);
@@ -112,9 +119,12 @@ The correctAnswer MUST exactly match one of the options.`,
 
   app.post("/api/ads", upload.single("media"), async (req, res) => {
     try {
-      const mediaUrl = req.file
-        ? `/assets/uploads/${req.file.filename}`
-        : req.body.mediaUrl;
+      let mediaUrl = req.body.mediaUrl || "";
+      if (req.file) {
+        mediaUrl = isProd
+          ? `/uploads/${req.file.filename}`
+          : `/assets/uploads/${req.file.filename}`;
+      }
 
       if (!mediaUrl) {
         return res.status(400).json({ error: "Media file or URL is required" });
@@ -153,7 +163,7 @@ The correctAnswer MUST exactly match one of the options.`,
       if (req.body.description !== undefined) updateData.description = req.body.description;
       if (req.body.qrUrl !== undefined) updateData.qrUrl = req.body.qrUrl;
       if (req.body.sortOrder !== undefined) updateData.sortOrder = parseInt(req.body.sortOrder);
-      if (req.file) updateData.mediaUrl = `/assets/uploads/${req.file.filename}`;
+      if (req.file) updateData.mediaUrl = isProd ? `/uploads/${req.file.filename}` : `/assets/uploads/${req.file.filename}`;
       else if (req.body.mediaUrl !== undefined) updateData.mediaUrl = req.body.mediaUrl;
 
       const updated = await storage.updateAd(id, updateData);
@@ -217,7 +227,8 @@ The correctAnswer MUST exactly match one of the options.`,
   app.post("/api/upload", upload.single("media"), async (req, res) => {
     try {
       if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-      res.json({ url: `/assets/uploads/${req.file.filename}` });
+      const fileUrl = isProd ? `/uploads/${req.file.filename}` : `/assets/uploads/${req.file.filename}`;
+      res.json({ url: fileUrl });
     } catch (error) {
       console.error("Error uploading file:", error);
       res.status(500).json({ error: "Failed to upload file" });

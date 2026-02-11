@@ -16,6 +16,7 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
   const [sortOrder, setSortOrder] = useState(ad?.sortOrder?.toString() || "0");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string>(ad?.mediaUrl || "");
+  const [mediaUrlInput, setMediaUrlInput] = useState(ad?.mediaUrl || "");
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -41,6 +42,8 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
       formData.append("sortOrder", sortOrder);
       if (mediaFile) {
         formData.append("media", mediaFile);
+      } else if (mediaUrlInput) {
+        formData.append("mediaUrl", mediaUrlInput);
       } else if (ad?.mediaUrl) {
         formData.append("mediaUrl", ad.mediaUrl);
       }
@@ -101,6 +104,16 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
             )}
           </div>
           <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleFileChange} className="hidden" />
+
+          <div className="relative">
+            <input
+              value={mediaUrlInput}
+              onChange={(e) => { setMediaUrlInput(e.target.value); setMediaPreview(e.target.value); }}
+              placeholder="Or paste media URL (image or video link)"
+              className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500"
+              data-testid="input-media-url"
+            />
+          </div>
 
           <div className="flex gap-2">
             <button
