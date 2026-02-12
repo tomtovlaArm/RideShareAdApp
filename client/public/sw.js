@@ -1,4 +1,4 @@
-const CACHE_NAME = 'uberpod-v1';
+const CACHE_NAME = 'uberpod-v2';
 const API_CACHE = 'uberpod-api-v1';
 const MEDIA_CACHE = 'uberpod-media-v1';
 
@@ -53,6 +53,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(networkFirstWithCache(event.request, CACHE_NAME));
     return;
   }
 
