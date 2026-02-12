@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Music, Gamepad2, ChevronRight, Volume2, X } from "lucide-react";
 import { PodFrame } from "@/components/layout/PodFrame";
@@ -20,6 +20,20 @@ export default function Home() {
   const [volume, setVolume] = useState(75);
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [, navigate] = useLocation();
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleTitleTap = useCallback(() => {
+    tapCountRef.current += 1;
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+    if (tapCountRef.current >= 5) {
+      tapCountRef.current = 0;
+      navigate("/admin");
+      return;
+    }
+    tapTimerRef.current = setTimeout(() => { tapCountRef.current = 0; }, 2000);
+  }, [navigate]);
 
   const { data: ads = [] } = useQuery<Ad[]>({
     queryKey: ["/api/ads"],
@@ -79,7 +93,7 @@ export default function Home() {
         <div className="flex flex-col flex-1 min-w-0 gap-3">
           <div className="space-y-0.5 shrink-0">
             <h2 className="text-neutral-400 text-xs font-medium uppercase tracking-wider">Welcome Rider</h2>
-            <h1 className="text-2xl font-display font-bold text-white">Dashboard</h1>
+            <h1 className="text-2xl font-display font-bold text-white cursor-default select-none" onClick={handleTitleTap}>Dashboard</h1>
           </div>
 
           <div className="flex flex-row flex-1 gap-3 min-h-0">
