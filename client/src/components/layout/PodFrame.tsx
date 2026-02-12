@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,54 @@ interface PodFrameProps {
   showBack?: boolean;
 }
 
+function useIsFullscreen() {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches
+        || (navigator as any).standalone === true;
+      const isTablet = /iPad|Android/i.test(navigator.userAgent)
+        && (window.innerWidth >= 700 || window.innerHeight >= 700);
+      const isTouchWide = 'ontouchstart' in window && window.innerWidth >= 700;
+      setIsFullscreen(isPWA || isTablet || isTouchWide);
+    };
+
+    check();
+    window.addEventListener('resize', check);
+    const mq = window.matchMedia('(display-mode: standalone)');
+    mq.addEventListener('change', check);
+
+    return () => {
+      window.removeEventListener('resize', check);
+      mq.removeEventListener('change', check);
+    };
+  }, []);
+
+  return isFullscreen;
+}
+
 export function PodFrame({ children, className, onBack, showBack }: PodFrameProps) {
+  const isFullscreen = useIsFullscreen();
+
+  if (isFullscreen) {
+    return (
+      <div className="h-screen w-screen bg-black font-sans text-white overflow-hidden relative">
+        {showBack && (
+          <button
+            onClick={onBack}
+            className="absolute top-4 left-4 z-50 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+        )}
+        <AnimatePresence mode="wait">
+          {children}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-neutral-900 p-4 font-sans text-white">
       {/* Device Body - landscape iPad tablet */}
