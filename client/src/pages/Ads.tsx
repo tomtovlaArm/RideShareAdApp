@@ -10,8 +10,25 @@ import type { Ad } from "@shared/schema";
 
 function VideoPlayer({ src, isActive }: { src: string; isActive: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [fitMode, setFitMode] = useState<"cover" | "contain">("cover");
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const detectFit = () => {
+      const container = containerRef.current;
+      if (!container || !video.videoWidth || !video.videoHeight) return;
+      const videoRatio = video.videoWidth / video.videoHeight;
+      const containerRatio = container.clientWidth / container.clientHeight;
+      const diff = Math.abs(videoRatio - containerRatio) / containerRatio;
+      setFitMode(diff > 0.3 ? "contain" : "cover");
+    };
+    video.addEventListener("loadedmetadata", detectFit);
+    return () => video.removeEventListener("loadedmetadata", detectFit);
+  }, [src]);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -43,11 +60,11 @@ function VideoPlayer({ src, isActive }: { src: string; isActive: boolean }) {
   };
 
   return (
-    <div className="w-full h-full relative">
+    <div ref={containerRef} className="w-full h-full relative bg-black">
       <video
         ref={videoRef}
         src={src}
-        className="w-full h-full object-cover"
+        className={`w-full h-full ${fitMode === "contain" ? "object-contain" : "object-cover"}`}
         loop
         muted={isMuted}
         playsInline
