@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { PodFrame } from "@/components/layout/PodFrame";
-import { ArrowLeft, ArrowRight, ShoppingCart, Play, Pause, Volume2, VolumeX, Loader2, Download } from "lucide-react";
+import { ArrowLeft, ArrowRight, Play, Pause, Volume2, VolumeX, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
@@ -230,13 +230,6 @@ export default function Ads() {
               ))}
             </div>
 
-            <Button className="w-full bg-white text-black hover:bg-neutral-200 font-semibold h-11 rounded-full" data-testid="button-view-details">
-              View Details
-            </Button>
-            <Button className="w-full h-11 rounded-full bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700 flex items-center justify-center gap-2" data-testid="button-add-cart">
-              <ShoppingCart size={18} />
-              <span className="text-sm">Add to Cart</span>
-            </Button>
           </div>
         </div>
       </div>
