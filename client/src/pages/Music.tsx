@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { PodFrame } from "@/components/layout/PodFrame";
@@ -33,9 +33,16 @@ export default function Music() {
     },
   });
 
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
     if (fetchedTracks.length > 0) {
       audio.setTracks(fetchedTracks);
+      if (!hasInitialized.current && !audio.isPlaying) {
+        hasInitialized.current = true;
+        const randomIdx = Math.floor(Math.random() * fetchedTracks.length);
+        audio.selectTrack(randomIdx);
+      }
     }
   }, [fetchedTracks]);
 

@@ -54,7 +54,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const [volume, setVolume] = useState(80);
   const [muted, setMuted] = useState(false);
   const [liked, setLiked] = useState<Set<string>>(new Set());
-  const [selectedGenre, setSelectedGenre] = useState("chillout");
+  const [selectedGenre, setSelectedGenre] = useState("electronic");
   const progressInterval = useRef<number | null>(null);
   const tracksRef = useRef<Track[]>([]);
   const playingTrackId = useRef<string | null>(null);
