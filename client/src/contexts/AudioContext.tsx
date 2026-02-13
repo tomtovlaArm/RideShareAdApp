@@ -85,19 +85,35 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     globalAudio.volume = muted ? 0 : volume / 100;
   }, [volume, muted]);
 
+  const autoNextRef = useRef<(() => void) | null>(null);
+
+  autoNextRef.current = () => {
+    stopProgressTracking();
+    const t = tracksRef.current;
+    if (t.length > 1) {
+      const curIdx = t.findIndex(tr => tr.id === playingTrackId.current);
+      const nextIdx = (curIdx + 1) % t.length;
+      playingTrackId.current = null;
+      setCurrentTrackIndexState(nextIdx);
+      const nextTrack = t[nextIdx];
+      playingTrackId.current = nextTrack.id;
+      globalAudio.src = nextTrack.audioUrl;
+      globalAudio.volume = muted ? 0 : volume / 100;
+      globalAudio.play().catch(() => {});
+      setIsPlaying(true);
+      setProgress(0);
+      setCurrentTime(0);
+      startProgressTracking();
+    } else {
+      setIsPlaying(false);
+      setProgress(0);
+      setCurrentTime(0);
+    }
+  };
+
   useEffect(() => {
     const handleEnded = () => {
-      stopProgressTracking();
-      const t = tracksRef.current;
-      if (t.length > 1) {
-        const nextIdx = (tracksRef.current.findIndex(tr => tr.id === playingTrackId.current) + 1) % t.length;
-        playingTrackId.current = null;
-        setCurrentTrackIndexState(nextIdx);
-      } else {
-        setIsPlaying(false);
-        setProgress(0);
-        setCurrentTime(0);
-      }
+      autoNextRef.current?.();
     };
 
     globalAudio.addEventListener("ended", handleEnded);
