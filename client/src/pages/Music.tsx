@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { PodFrame } from "@/components/layout/PodFrame";
@@ -23,6 +23,24 @@ export default function Music() {
   const [, setLocation] = useLocation();
   const [showPlaylist, setShowPlaylist] = useState(false);
   const audio = useAudio();
+  const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+    inactivityTimer.current = setTimeout(() => {
+      setLocation("/");
+    }, 10000);
+  }, [setLocation]);
+
+  useEffect(() => {
+    resetInactivityTimer();
+    const events = ["pointerdown", "pointermove", "keydown", "scroll", "touchstart"];
+    events.forEach((e) => window.addEventListener(e, resetInactivityTimer));
+    return () => {
+      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+      events.forEach((e) => window.removeEventListener(e, resetInactivityTimer));
+    };
+  }, [resetInactivityTimer]);
 
   const { data: fetchedTracks = [], isLoading } = useQuery<Track[]>({
     queryKey: ["/api/music/tracks", audio.selectedGenre],
