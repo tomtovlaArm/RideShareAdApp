@@ -83,7 +83,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     globalAudio.volume = muted ? 0 : volume / 100;
+  }, [volume, muted]);
 
+  useEffect(() => {
     const handleEnded = () => {
       stopProgressTracking();
       const t = tracksRef.current;
