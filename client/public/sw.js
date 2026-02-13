@@ -1,6 +1,6 @@
-const CACHE_NAME = 'uberpod-v2';
-const API_CACHE = 'uberpod-api-v1';
-const MEDIA_CACHE = 'uberpod-media-v1';
+const CACHE_NAME = 'uberpod-v3';
+const API_CACHE = 'uberpod-api-v2';
+const MEDIA_CACHE = 'uberpod-media-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -35,20 +35,8 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.method !== 'GET') return;
 
-  if (url.pathname === '/api/ads') {
+  if (url.pathname.startsWith('/api/ads') || url.pathname.startsWith('/api/trivia')) {
     event.respondWith(networkFirstWithCache(event.request, API_CACHE));
-    return;
-  }
-
-  if (url.pathname === '/api/trivia') {
-    event.respondWith(networkFirstWithCache(event.request, API_CACHE));
-    return;
-  }
-
-  if (url.pathname.startsWith('/uploads/') ||
-      url.pathname.startsWith('/assets/uploads/') ||
-      isMediaUrl(url)) {
-    event.respondWith(cacheFirstWithNetwork(event.request, MEDIA_CACHE));
     return;
   }
 
@@ -56,12 +44,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (event.request.mode === 'navigate') {
-    event.respondWith(networkFirstWithCache(event.request, CACHE_NAME));
+  if (url.pathname.startsWith('/uploads/') ||
+      url.pathname.startsWith('/assets/uploads/')) {
+    event.respondWith(cacheFirstWithNetwork(event.request, MEDIA_CACHE));
     return;
   }
 
-  event.respondWith(cacheFirstWithNetwork(event.request, CACHE_NAME));
+  if (url.pathname.match(/\.(mp4|webm|mov)$/i)) {
+    event.respondWith(cacheFirstWithNetwork(event.request, MEDIA_CACHE));
+    return;
+  }
+
+  if (url.pathname.match(/\.(png|jpg|jpeg|gif|webp|svg)$/i) && !url.pathname.endsWith('/favicon.png')) {
+    event.respondWith(cacheFirstWithNetwork(event.request, MEDIA_CACHE));
+    return;
+  }
+
+  event.respondWith(networkFirstWithCache(event.request, CACHE_NAME));
 });
 
 async function networkFirstWithCache(request, cacheName) {
@@ -96,9 +95,4 @@ async function cacheFirstWithNetwork(request, cacheName) {
   } catch (error) {
     return new Response('Offline', { status: 503 });
   }
-}
-
-function isMediaUrl(url) {
-  const ext = url.pathname.split('.').pop()?.toLowerCase();
-  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'mp4', 'webm'].includes(ext || '');
 }
