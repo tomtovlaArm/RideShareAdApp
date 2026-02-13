@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Music, Gamepad2, ChevronRight, Volume2, X } from "lucide-react";
+import { Brain, Music, Gamepad2, ChevronRight } from "lucide-react";
 import { PodFrame } from "@/components/layout/PodFrame";
-import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
@@ -16,8 +15,6 @@ const menuItems = [
 ];
 
 export default function Home() {
-  const [showVolume, setShowVolume] = useState(false);
-  const [volume, setVolume] = useState(75);
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [, navigate] = useLocation();
@@ -183,64 +180,8 @@ export default function Home() {
               </div>
             </Link>
           ))}
-          
-          <div 
-            onClick={() => setShowVolume(true)}
-            className="flex items-center p-2.5 bg-neutral-900/50 border border-white/5 hover:bg-white/5 rounded-lg transition-all active:scale-[0.98] cursor-pointer group"
-            data-testid="button-volume"
-          >
-            <div className="w-8 h-8 rounded-md bg-neutral-500 flex items-center justify-center text-white shadow-lg">
-              <Volume2 size={16} />
-            </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">Volume</h3>
-            </div>
-            <ChevronRight size={16} className="text-neutral-600 group-hover:text-white transition-colors" />
-          </div>
         </div>
 
-        <AnimatePresence>
-          {showVolume && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center"
-              onClick={() => setShowVolume(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="w-[400px] bg-neutral-900 rounded-2xl border border-white/10 p-8"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-xl font-bold text-white">System Volume</h2>
-                  <button 
-                    onClick={() => setShowVolume(false)}
-                    className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white"
-                    data-testid="button-close-volume"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                
-                <div className="flex items-center gap-4 mb-4">
-                  <Volume2 size={24} className="text-neutral-400" />
-                  <Slider
-                    value={[volume]}
-                    max={100}
-                    step={1}
-                    onValueChange={(val) => setVolume(val[0])}
-                    className="flex-1"
-                  />
-                  <span className="w-12 text-right font-mono text-white">{volume}%</span>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
       </motion.div>
     </PodFrame>
