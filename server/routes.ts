@@ -262,59 +262,41 @@ The correctAnswer MUST exactly match one of the options.`,
     return null;
   }
 
-  app.get("/api/media-proxy", async (req, res) => {
+  const resolvedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+
+  app.get("/api/media-resolve", async (req, res) => {
     try {
       const url = req.query.url as string;
       if (!url || !url.startsWith("https://")) {
         return res.status(400).json({ error: "Invalid URL" });
       }
 
-      const detectedMime = getMimeFromUrl(url);
+      const cached = resolvedUrlCache.get(url);
+      if (cached && cached.expiresAt > Date.now()) {
+        return res.json({ directUrl: cached.url });
+      }
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 60000);
+      const timeout = setTimeout(() => controller.abort(), 10000);
 
       const response = await fetch(url, {
         signal: controller.signal,
-        redirect: "follow",
+        redirect: "manual",
       });
       clearTimeout(timeout);
 
-      if (!response.ok) {
-        return res.status(response.status).json({ error: "Failed to fetch media" });
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        if (location) {
+          resolvedUrlCache.set(url, { url: location, expiresAt: Date.now() + 3600000 });
+          return res.json({ directUrl: location });
+        }
       }
 
-      const contentType = response.headers.get("content-type");
-      const contentLength = response.headers.get("content-length");
-
-      const finalMime = detectedMime || (contentType && !contentType.includes("application/") ? contentType : "application/octet-stream");
-      res.setHeader("Content-Type", finalMime);
-      if (contentLength) res.setHeader("Content-Length", contentLength);
-      res.setHeader("Cache-Control", "public, max-age=3600");
-      res.setHeader("Accept-Ranges", "bytes");
-
-      if (response.body) {
-        const reader = response.body.getReader();
-        const pump = async () => {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) { res.end(); break; }
-            if (!res.write(value)) {
-              await new Promise((resolve) => res.once("drain", resolve));
-            }
-          }
-        };
-        pump().catch((err) => {
-          console.error("Proxy stream error:", err);
-          if (!res.headersSent) res.status(500).end();
-          else res.end();
-        });
-      } else {
-        res.status(500).json({ error: "No response body" });
-      }
+      res.json({ directUrl: url });
     } catch (error) {
-      console.error("Media proxy error:", error);
-      if (!res.headersSent) res.status(500).json({ error: "Failed to proxy media" });
+      console.error("Media resolve error:", error);
+      res.json({ directUrl: url });
     }
   });
 

@@ -7,7 +7,24 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
 import type { Ad } from "@shared/schema";
-import { proxyMediaUrl } from "@/lib/media";
+import { resolveMediaUrl, isExternalUrl } from "@/lib/media";
+
+function useResolvedUrl(url: string): string {
+  const [resolved, setResolved] = useState(url);
+  useEffect(() => {
+    if (isExternalUrl(url)) {
+      resolveMediaUrl(url).then(setResolved);
+    } else {
+      setResolved(url);
+    }
+  }, [url]);
+  return resolved;
+}
+
+function ResolvedImage({ url, alt, className, ...props }: { url: string; alt: string; className?: string; [key: string]: any }) {
+  const resolvedSrc = useResolvedUrl(url);
+  return <img src={resolvedSrc} alt={alt} className={className} {...props} />;
+}
 
 function VideoPlayer({ src, isActive }: { src: string; isActive: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -15,6 +32,7 @@ function VideoPlayer({ src, isActive }: { src: string; isActive: boolean }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [fitMode, setFitMode] = useState<"cover" | "contain">("cover");
+  const resolvedSrc = useResolvedUrl(src);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -29,7 +47,7 @@ function VideoPlayer({ src, isActive }: { src: string; isActive: boolean }) {
     };
     video.addEventListener("loadedmetadata", detectFit);
     return () => video.removeEventListener("loadedmetadata", detectFit);
-  }, [src]);
+  }, [resolvedSrc]);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -64,7 +82,8 @@ function VideoPlayer({ src, isActive }: { src: string; isActive: boolean }) {
     <div ref={containerRef} className="w-full h-full relative bg-black">
       <video
         ref={videoRef}
-        src={proxyMediaUrl(src)}
+        src={resolvedSrc}
+        crossOrigin="anonymous"
         className={`w-full h-full ${fitMode === "contain" ? "object-contain" : "object-cover"}`}
         loop
         muted={isMuted}
@@ -153,8 +172,8 @@ export default function Ads() {
               {currentAd.type === "video" ? (
                 <VideoPlayer src={currentAd.mediaUrl} isActive={true} />
               ) : (
-                <img 
-                  src={proxyMediaUrl(currentAd.mediaUrl)} 
+                <ResolvedImage 
+                  url={currentAd.mediaUrl} 
                   alt={currentAd.name}
                   className="w-full h-full object-cover"
                   data-testid={`img-ad-${currentAd.id}`}
