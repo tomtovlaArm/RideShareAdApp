@@ -44,6 +44,40 @@ export function useAudio() {
 }
 
 const globalAudio = new Audio();
+globalAudio.crossOrigin = "anonymous";
+
+let webAudioCtx: AudioContext | null = null;
+let gainNode: GainNode | null = null;
+let sourceNode: MediaElementAudioSourceNode | null = null;
+let webAudioInitialized = false;
+
+function initWebAudio() {
+  if (webAudioInitialized) return;
+  try {
+    webAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    gainNode = webAudioCtx.createGain();
+    sourceNode = webAudioCtx.createMediaElementSource(globalAudio);
+    sourceNode.connect(gainNode);
+    gainNode.connect(webAudioCtx.destination);
+    webAudioInitialized = true;
+  } catch (e) {
+    console.warn("Web Audio API not available, falling back to HTML5 volume");
+  }
+}
+
+function setGainVolume(vol: number) {
+  if (gainNode) {
+    gainNode.gain.value = vol;
+  } else {
+    globalAudio.volume = vol;
+  }
+}
+
+function resumeWebAudio() {
+  if (webAudioCtx && webAudioCtx.state === "suspended") {
+    webAudioCtx.resume().catch(() => {});
+  }
+}
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [tracks, setTracksState] = useState<Track[]>([]);
@@ -58,11 +92,27 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const progressInterval = useRef<number | null>(null);
   const tracksRef = useRef<Track[]>([]);
   const playingTrackId = useRef<string | null>(null);
+  const userInteracted = useRef(false);
 
   tracksRef.current = tracks;
   const currentTrack = tracks.length > 0 && currentTrackIndex < tracks.length
     ? tracks[currentTrackIndex]
     : undefined;
+
+  useEffect(() => {
+    const handleInteraction = () => {
+      if (!userInteracted.current) {
+        userInteracted.current = true;
+        initWebAudio();
+      }
+      resumeWebAudio();
+    };
+    const events = ["touchstart", "touchend", "click", "pointerdown"];
+    events.forEach((e) => document.addEventListener(e, handleInteraction, { once: false, passive: true }));
+    return () => {
+      events.forEach((e) => document.removeEventListener(e, handleInteraction));
+    };
+  }, []);
 
   const stopProgressTracking = useCallback(() => {
     if (progressInterval.current) {
@@ -82,7 +132,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [stopProgressTracking]);
 
   useEffect(() => {
-    globalAudio.volume = muted ? 0 : volume / 100;
+    const vol = muted ? 0 : volume / 100;
+    setGainVolume(vol);
   }, [volume, muted]);
 
   const autoNextRef = useRef<(() => void) | null>(null);
@@ -98,7 +149,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       const nextTrack = t[nextIdx];
       playingTrackId.current = nextTrack.id;
       globalAudio.src = nextTrack.audioUrl;
-      globalAudio.volume = muted ? 0 : volume / 100;
+      setGainVolume(muted ? 0 : volume / 100);
+      resumeWebAudio();
       globalAudio.play().catch(() => {});
       setIsPlaying(true);
       setProgress(0);
@@ -125,9 +177,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const loadAndPlay = useCallback((track: Track) => {
     if (playingTrackId.current === track.id) return;
+    initWebAudio();
+    resumeWebAudio();
     playingTrackId.current = track.id;
     globalAudio.src = track.audioUrl;
-    globalAudio.volume = muted ? 0 : volume / 100;
+    setGainVolume(muted ? 0 : volume / 100);
     globalAudio.play().catch(() => {});
     setIsPlaying(true);
     setProgress(0);
@@ -137,6 +191,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const togglePlay = useCallback(() => {
     if (!currentTrack) return;
+    initWebAudio();
+    resumeWebAudio();
     if (globalAudio.paused || !globalAudio.src) {
       if (!globalAudio.src || playingTrackId.current !== currentTrack.id) {
         playingTrackId.current = currentTrack.id;
@@ -190,13 +246,13 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const v = val[0];
     setVolume(v);
     setMuted(v === 0);
-    globalAudio.volume = v / 100;
+    setGainVolume(v / 100);
   }, []);
 
   const toggleMute = useCallback(() => {
     setMuted((prev) => {
       const newMuted = !prev;
-      globalAudio.volume = newMuted ? 0 : volume / 100;
+      setGainVolume(newMuted ? 0 : volume / 100);
       return newMuted;
     });
   }, [volume]);
