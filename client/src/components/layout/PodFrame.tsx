@@ -78,7 +78,13 @@ function InlineMiniPlayer() {
         <p className="text-[10px] text-neutral-400 truncate">{audio.currentTrack.artist}</p>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex items-center gap-2 shrink-0"
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         <button
           onClick={audio.toggleMute}
           className="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
@@ -86,14 +92,21 @@ function InlineMiniPlayer() {
         >
           {audio.muted || audio.volume === 0 ? <VolumeX size={14} /> : audio.volume < 50 ? <Volume1 size={14} /> : <Volume2 size={14} />}
         </button>
-        <Slider
-          value={[audio.muted ? 0 : audio.volume]}
-          max={100}
-          step={1}
-          className="w-20 cursor-pointer"
-          onValueChange={audio.changeVolume}
-          data-testid="mini-player-volume"
-        />
+        <div
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          className="w-24"
+        >
+          <Slider
+            value={[audio.muted ? 0 : audio.volume]}
+            max={100}
+            step={1}
+            className="w-full cursor-pointer"
+            onValueChange={audio.changeVolume}
+            data-testid="mini-player-volume"
+          />
+        </div>
         <button
           onClick={audio.togglePlay}
           className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
