@@ -58,55 +58,60 @@ export const storage = new DatabaseStorage();
 export async function seedDefaultAds() {
   console.log("Checking if ads need seeding...");
   const existing = await storage.getAllAds();
+
   if (existing.length > 0) {
-    console.log(`Found ${existing.length} existing ads, skipping seed`);
-    return;
+    console.log(`Found ${existing.length} existing ads, checking for migration...`);
+    let migrated = 0;
+    for (const ad of existing) {
+      if (ad.mediaUrl && (ad.mediaUrl.startsWith("/assets/") || ad.mediaUrl.startsWith("/uploads/"))) {
+        await storage.deleteAd(ad.id);
+        migrated++;
+      }
+    }
+    if (migrated > 0) {
+      console.log(`Removed ${migrated} ads with outdated local file paths`);
+    }
+    const remaining = await storage.getAllAds();
+    if (remaining.length > 0) {
+      console.log(`${remaining.length} ads remain after migration`);
+      return;
+    }
+    console.log("No valid ads remain, re-seeding with defaults...");
   }
 
   const defaultAds: InsertAd[] = [
     {
-      name: "Safe VapeBox",
-      brand: "Sponsored",
-      price: "12.99",
+      name: "Vape holder for 510 cartridge with battery and hygiene tips",
+      brand: "Safe VapeBox",
+      price: "",
       type: "video",
-      mediaUrl: "/assets/ad-video-1.mp4",
-      description: "Vape box for 510 and Disposable Pod vapes with sanitary tips.",
-      qrUrl: "safevaprbox.com",
+      mediaUrl: "https://www.dropbox.com/scl/fi/l8cnik0hrkt0h7wpikyaw/vape-2-text-not-audio-horizontal0001-0638.mp4?rlkey=nymrgb2l8h0xxhhhe3yfre5ex&st=3pa8loze&dl=1",
+      description: "Vape packaging for 510 and Disposable Pod vapes with sanitary tips.",
+      qrUrl: "safevapebox.com",
       sortOrder: 1,
-      displayDuration: 8,
+      displayDuration: 30,
     },
     {
-      name: "Chronos Elite",
-      brand: "LuxeTime",
-      price: "$4,500",
+      name: "Vape Holder Box",
+      brand: "Safe VapeBox",
+      price: "",
       type: "image",
-      mediaUrl: "/assets/ads-watch.png",
-      description: "Precision engineering meets timeless elegance. The Chronos Elite is crafted for those who value every second.",
-      qrUrl: "",
-      sortOrder: 1,
-      displayDuration: 5,
-    },
-    {
-      name: "Sonic Pro X",
-      brand: "AudioTech",
-      price: "$399",
-      type: "image",
-      mediaUrl: "/assets/ads-headphones.png",
-      description: "Immerse yourself in pure sound. Active noise cancellation and 40-hour battery life for the longest journeys.",
-      qrUrl: "",
-      sortOrder: 2,
-      displayDuration: 5,
-    },
-    {
-      name: "Midnight Rose",
-      brand: "Maison Scent",
-      price: "$180",
-      type: "image",
-      mediaUrl: "/assets/ads-perfume.png",
-      description: "A captivating blend of dark rose, amber, and vanilla. Leave a lasting impression wherever you go.",
-      qrUrl: "",
+      mediaUrl: "https://www.dropbox.com/scl/fi/0n627qnpamzpug6mlivic/2-2.jpg?rlkey=m4in7n9nbgr6b3avm1mrkqgwp&st=gkvi7pw7&dl=1",
+      description: "Vape Box with Hygienic Sanitary Tips for Clean, Safe Vaping.\nPerfect for clean, hygienic use and safer sharing!",
+      qrUrl: "safevapebox.com",
       sortOrder: 3,
-      displayDuration: 6,
+      displayDuration: 20,
+    },
+    {
+      name: "Vape Holder for disposable pods",
+      brand: "Safe VapeBox",
+      price: "",
+      type: "video",
+      mediaUrl: "https://www.dropbox.com/scl/fi/cidqoeb2m81uhi7q0a1te/VAPE-2-TEXT-horizontal-no-audio0001-0630.mp4?rlkey=uaxcwzs9yf1x6l9570l9lun5z&st=yii26yic&dl=1",
+      description: "VapeBox For Pod Style Vape",
+      qrUrl: "safevapebox.com",
+      sortOrder: 4,
+      displayDuration: 20,
     },
   ];
 
