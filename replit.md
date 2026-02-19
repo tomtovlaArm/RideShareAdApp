@@ -27,6 +27,10 @@ Preferred communication style: Simple, everyday language.
 - **API Pattern**: RESTful JSON APIs under `/api/` prefix
 - **Key Endpoints**:
   - `GET /api/trivia?count=N` — Generates trivia questions using OpenAI
+  - `GET /api/media-proxy?url=URL` — Proxies external media (Dropbox, etc.) with correct MIME types for video/image playback
+  - `GET /api/music/tracks` — Fetches music from Jamendo API
+  - `POST /api/ads` / `PUT /api/ads/:id` / `DELETE /api/ads/:id` — Ad CRUD
+  - `POST /api/upload` — File upload for ad media
   - Conversation/chat CRUD endpoints via Replit integrations (`/api/conversations/*`)
   - Image generation endpoint (`/api/generate-image`)
   - Voice/audio processing endpoints
