@@ -262,41 +262,41 @@ The correctAnswer MUST exactly match one of the options.`,
     return null;
   }
 
-  const resolvedUrlCache = new Map<string, { url: string; expiresAt: number }>();
-
-  app.get("/api/media-resolve", async (req, res) => {
+  app.get("/api/media-proxy", async (req, res) => {
     try {
       const url = req.query.url as string;
       if (!url || !url.startsWith("https://")) {
         return res.status(400).json({ error: "Invalid URL" });
       }
 
-      const cached = resolvedUrlCache.get(url);
-      if (cached && cached.expiresAt > Date.now()) {
-        return res.json({ directUrl: cached.url });
+      const mime = getMimeFromUrl(url);
+      const response = await fetch(url, { redirect: "follow" });
+
+      if (!response.ok || !response.body) {
+        return res.status(502).json({ error: "Failed to fetch media" });
       }
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
+      const contentType = mime || response.headers.get("content-type") || "application/octet-stream";
+      const contentLength = response.headers.get("content-length");
 
-      const response = await fetch(url, {
-        signal: controller.signal,
-        redirect: "manual",
-      });
-      clearTimeout(timeout);
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      if (contentLength) res.setHeader("Content-Length", contentLength);
 
-      if (response.status >= 300 && response.status < 400) {
-        const location = response.headers.get("location");
-        if (location) {
-          resolvedUrlCache.set(url, { url: location, expiresAt: Date.now() + 3600000 });
-          return res.json({ directUrl: location });
+      const reader = response.body.getReader();
+      const pump = async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) { res.end(); return; }
+          if (!res.write(value)) {
+            await new Promise(resolve => res.once("drain", resolve));
+          }
         }
-      }
-
-      res.json({ directUrl: url });
+      };
+      pump().catch(() => res.end());
     } catch (error) {
-      console.error("Media resolve error:", error);
-      res.json({ directUrl: url });
+      console.error("Media proxy error:", error);
+      if (!res.headersSent) res.status(500).json({ error: "Proxy failed" });
     }
   });
 

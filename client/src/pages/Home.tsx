@@ -7,25 +7,13 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
 import type { Ad } from "@shared/schema";
-import { resolveMediaUrl, isExternalUrl } from "@/lib/media";
+import { getMediaSrc } from "@/lib/media";
 
 const menuItems = [
   { id: "trivia", title: "Trivia Challenge", icon: Brain, color: "bg-purple-500", href: "/trivia" },
   { id: "music", title: "My Music", icon: Music, color: "bg-pink-500", href: "/music" },
   { id: "games", title: "Mini Games", icon: Gamepad2, color: "bg-emerald-500", href: "/games" },
 ];
-
-function useResolvedUrl(url: string): string {
-  const [resolved, setResolved] = useState(url);
-  useEffect(() => {
-    if (isExternalUrl(url)) {
-      resolveMediaUrl(url).then(setResolved);
-    } else {
-      setResolved(url);
-    }
-  }, [url]);
-  return resolved;
-}
 
 export default function Home() {
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
@@ -91,7 +79,6 @@ export default function Home() {
   }, [clearTimer]);
 
   const featuredAd = ads.length > 0 ? ads[currentAdIndex < ads.length ? currentAdIndex : 0] : undefined;
-  const resolvedMediaUrl = useResolvedUrl(featuredAd?.mediaUrl || "");
 
   return (
     <PodFrame>
@@ -121,8 +108,7 @@ export default function Home() {
                   >
                     {featuredAd?.type === "video" ? (
                       <video
-                        src={resolvedMediaUrl}
-                        crossOrigin="anonymous"
+                        src={getMediaSrc(featuredAd.mediaUrl)}
                         className="absolute inset-0 w-full h-full object-cover"
                         autoPlay
                         loop
@@ -131,7 +117,7 @@ export default function Home() {
                       />
                     ) : featuredAd?.mediaUrl ? (
                       <img
-                        src={resolvedMediaUrl}
+                        src={getMediaSrc(featuredAd.mediaUrl)}
                         alt={featuredAd.name}
                         className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-70 transition-opacity duration-500"
                       />
