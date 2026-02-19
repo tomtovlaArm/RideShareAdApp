@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
 import type { Ad } from "@shared/schema";
+import { proxyMediaUrl } from "@/lib/media";
 
 function VideoPlayer({ src, isActive }: { src: string; isActive: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -63,7 +64,7 @@ function VideoPlayer({ src, isActive }: { src: string; isActive: boolean }) {
     <div ref={containerRef} className="w-full h-full relative bg-black">
       <video
         ref={videoRef}
-        src={src}
+        src={proxyMediaUrl(src)}
         className={`w-full h-full ${fitMode === "contain" ? "object-contain" : "object-cover"}`}
         loop
         muted={isMuted}
@@ -153,7 +154,7 @@ export default function Ads() {
                 <VideoPlayer src={currentAd.mediaUrl} isActive={true} />
               ) : (
                 <img 
-                  src={currentAd.mediaUrl} 
+                  src={proxyMediaUrl(currentAd.mediaUrl)} 
                   alt={currentAd.name}
                   className="w-full h-full object-cover"
                   data-testid={`img-ad-${currentAd.id}`}

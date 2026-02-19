@@ -239,6 +239,59 @@ The correctAnswer MUST exactly match one of the options.`,
     }
   });
 
+  app.get("/api/media-proxy", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url || !url.startsWith("https://")) {
+        return res.status(400).json({ error: "Invalid URL" });
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+        redirect: "follow",
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        return res.status(response.status).json({ error: "Failed to fetch media" });
+      }
+
+      const contentType = response.headers.get("content-type");
+      const contentLength = response.headers.get("content-length");
+
+      if (contentType) res.setHeader("Content-Type", contentType);
+      if (contentLength) res.setHeader("Content-Length", contentLength);
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      res.setHeader("Accept-Ranges", "bytes");
+
+      if (response.body) {
+        const reader = response.body.getReader();
+        const pump = async () => {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) { res.end(); break; }
+            if (!res.write(value)) {
+              await new Promise((resolve) => res.once("drain", resolve));
+            }
+          }
+        };
+        pump().catch((err) => {
+          console.error("Proxy stream error:", err);
+          if (!res.headersSent) res.status(500).end();
+          else res.end();
+        });
+      } else {
+        res.status(500).json({ error: "No response body" });
+      }
+    } catch (error) {
+      console.error("Media proxy error:", error);
+      if (!res.headersSent) res.status(500).json({ error: "Failed to proxy media" });
+    }
+  });
+
   app.post("/api/upload", upload.single("media"), async (req, res) => {
     try {
       if (!req.file) return res.status(400).json({ error: "No file uploaded" });

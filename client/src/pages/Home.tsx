@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
 import type { Ad } from "@shared/schema";
+import { proxyMediaUrl } from "@/lib/media";
 
 const menuItems = [
   { id: "trivia", title: "Trivia Challenge", icon: Brain, color: "bg-purple-500", href: "/trivia" },
@@ -107,7 +108,7 @@ export default function Home() {
                   >
                     {featuredAd?.type === "video" ? (
                       <video
-                        src={featuredAd.mediaUrl}
+                        src={proxyMediaUrl(featuredAd.mediaUrl)}
                         className="absolute inset-0 w-full h-full object-cover"
                         autoPlay
                         loop
@@ -116,7 +117,7 @@ export default function Home() {
                       />
                     ) : featuredAd?.mediaUrl ? (
                       <img
-                        src={featuredAd.mediaUrl}
+                        src={proxyMediaUrl(featuredAd.mediaUrl)}
                         alt={featuredAd.name}
                         className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-70 transition-opacity duration-500"
                       />
