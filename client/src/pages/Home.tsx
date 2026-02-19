@@ -115,7 +115,11 @@ export default function Home() {
                         playsInline
                       />
                     ) : featuredAd?.mediaUrl ? (
-                      <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" style={{ backgroundImage: `url(${featuredAd.mediaUrl})` }} />
+                      <img
+                        src={featuredAd.mediaUrl}
+                        alt={featuredAd.name}
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-70 transition-opacity duration-500"
+                      />
                     ) : (
                       <div className="absolute inset-0 bg-[url('/assets/ads-watch.png')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500" />
                     )}
