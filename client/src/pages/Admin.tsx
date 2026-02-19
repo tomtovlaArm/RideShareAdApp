@@ -1,10 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, Upload, X, ArrowLeft, GripVertical, Image, Video, Save } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, X, ArrowLeft, GripVertical, Image, Video, Save, Link, FileUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Ad } from "@shared/schema";
+
+function detectMediaType(url: string): "image" | "video" | null {
+  const lower = url.toLowerCase();
+  if (/\.(mp4|webm|mov|avi|mkv)/.test(lower)) return "video";
+  if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)/.test(lower)) return "image";
+  return null;
+}
+
+function isExternalUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url);
+}
 
 function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSaved: () => void }) {
   const [name, setName] = useState(ad?.name || "");
@@ -17,7 +28,8 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
   const [displayDuration, setDisplayDuration] = useState(ad?.displayDuration?.toString() || "5");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string>(ad?.mediaUrl || "");
-  const [mediaUrlInput, setMediaUrlInput] = useState(ad?.mediaUrl || "");
+  const [mediaUrlInput, setMediaUrlInput] = useState(isExternalUrl(ad?.mediaUrl || "") ? ad?.mediaUrl || "" : "");
+  const [mediaMode, setMediaMode] = useState<"upload" | "link">(isExternalUrl(ad?.mediaUrl || "") ? "link" : "upload");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -27,8 +39,21 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
     if (!file) return;
     setMediaFile(file);
     setMediaPreview(URL.createObjectURL(file));
+    setMediaUrlInput("");
     if (file.type.startsWith("video/")) setType("video");
     else setType("image");
+  };
+
+  const handleUrlChange = (url: string) => {
+    setMediaUrlInput(url);
+    setMediaFile(null);
+    if (url) {
+      setMediaPreview(url);
+      const detected = detectMediaType(url);
+      if (detected) setType(detected);
+    } else {
+      setMediaPreview("");
+    }
   };
 
   const handleSubmit = async () => {
@@ -107,35 +132,67 @@ function AdForm({ ad, onClose, onSaved }: { ad?: Ad; onClose: () => void; onSave
         </div>
 
         <div className="space-y-4">
-          <div
-            onClick={() => fileRef.current?.click()}
-            className="w-full h-40 rounded-xl border-2 border-dashed border-neutral-700 hover:border-neutral-500 flex items-center justify-center cursor-pointer overflow-hidden transition-colors"
-            data-testid="dropzone-media"
-          >
-            {mediaPreview ? (
-              type === "video" ? (
-                <video src={mediaPreview} className="w-full h-full object-cover" muted />
-              ) : (
-                <img src={mediaPreview} className="w-full h-full object-cover" alt="Preview" />
-              )
-            ) : (
-              <div className="text-center text-neutral-500">
-                <Upload size={28} className="mx-auto mb-2" />
-                <p className="text-sm">Click to upload image or video</p>
-              </div>
-            )}
+          <div className="flex gap-2 mb-1">
+            <button
+              onClick={() => setMediaMode("upload")}
+              className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-colors ${mediaMode === "upload" ? "bg-emerald-500/20 border-emerald-500 text-emerald-400" : "bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-neutral-300"}`}
+              data-testid="button-mode-upload"
+            >
+              <FileUp size={16} /> Upload File
+            </button>
+            <button
+              onClick={() => setMediaMode("link")}
+              className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border text-sm font-medium transition-colors ${mediaMode === "link" ? "bg-emerald-500/20 border-emerald-500 text-emerald-400" : "bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-neutral-300"}`}
+              data-testid="button-mode-link"
+            >
+              <Link size={16} /> Paste Link
+            </button>
           </div>
-          <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleFileChange} className="hidden" />
 
-          <div className="relative">
-            <input
-              value={mediaUrlInput}
-              onChange={(e) => { setMediaUrlInput(e.target.value); setMediaPreview(e.target.value); }}
-              placeholder="Or paste media URL (image or video link)"
-              className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-blue-500"
-              data-testid="input-media-url"
-            />
-          </div>
+          {mediaMode === "upload" ? (
+            <>
+              <div
+                onClick={() => fileRef.current?.click()}
+                className="w-full h-40 rounded-xl border-2 border-dashed border-neutral-700 hover:border-neutral-500 flex items-center justify-center cursor-pointer overflow-hidden transition-colors"
+                data-testid="dropzone-media"
+              >
+                {mediaFile && mediaPreview ? (
+                  type === "video" ? (
+                    <video src={mediaPreview} className="w-full h-full object-cover" muted />
+                  ) : (
+                    <img src={mediaPreview} className="w-full h-full object-cover" alt="Preview" />
+                  )
+                ) : (
+                  <div className="text-center text-neutral-500">
+                    <Upload size={28} className="mx-auto mb-2" />
+                    <p className="text-sm">Click to upload image or video</p>
+                    <p className="text-xs text-neutral-600 mt-1">JPG, PNG, GIF, MP4, WebM, MOV (max 50MB)</p>
+                  </div>
+                )}
+              </div>
+              <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleFileChange} className="hidden" />
+            </>
+          ) : (
+            <div className="space-y-3">
+              <input
+                value={mediaUrlInput}
+                onChange={(e) => handleUrlChange(e.target.value)}
+                placeholder="Paste link here (Dropbox, Google Drive, or any direct URL)"
+                className="w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-emerald-500"
+                data-testid="input-media-url"
+              />
+              <p className="text-xs text-neutral-500">For Dropbox links, make sure the URL ends with <span className="text-emerald-400">dl=1</span> for direct playback</p>
+              {mediaUrlInput && mediaPreview && (
+                <div className="w-full h-40 rounded-xl border border-neutral-700 overflow-hidden bg-neutral-800">
+                  {type === "video" ? (
+                    <video src={mediaPreview} className="w-full h-full object-cover" muted />
+                  ) : (
+                    <img src={mediaPreview} className="w-full h-full object-cover" alt="Preview" />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex gap-2">
             <button
