@@ -239,6 +239,29 @@ The correctAnswer MUST exactly match one of the options.`,
     }
   });
 
+  const mimeTypes: Record<string, string> = {
+    ".mp4": "video/mp4",
+    ".webm": "video/webm",
+    ".mov": "video/quicktime",
+    ".avi": "video/x-msvideo",
+    ".mkv": "video/x-matroska",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".bmp": "image/bmp",
+    ".svg": "image/svg+xml",
+  };
+
+  function getMimeFromUrl(url: string): string | null {
+    const pathname = new URL(url).pathname.toLowerCase();
+    for (const [ext, mime] of Object.entries(mimeTypes)) {
+      if (pathname.endsWith(ext)) return mime;
+    }
+    return null;
+  }
+
   app.get("/api/media-proxy", async (req, res) => {
     try {
       const url = req.query.url as string;
@@ -246,8 +269,10 @@ The correctAnswer MUST exactly match one of the options.`,
         return res.status(400).json({ error: "Invalid URL" });
       }
 
+      const detectedMime = getMimeFromUrl(url);
+
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
+      const timeout = setTimeout(() => controller.abort(), 60000);
 
       const response = await fetch(url, {
         signal: controller.signal,
@@ -262,7 +287,8 @@ The correctAnswer MUST exactly match one of the options.`,
       const contentType = response.headers.get("content-type");
       const contentLength = response.headers.get("content-length");
 
-      if (contentType) res.setHeader("Content-Type", contentType);
+      const finalMime = detectedMime || (contentType && !contentType.includes("application/") ? contentType : "application/octet-stream");
+      res.setHeader("Content-Type", finalMime);
       if (contentLength) res.setHeader("Content-Length", contentLength);
       res.setHeader("Cache-Control", "public, max-age=3600");
       res.setHeader("Accept-Ranges", "bytes");
