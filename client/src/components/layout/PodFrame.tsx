@@ -50,41 +50,36 @@ function InlineMiniPlayer() {
 
   return (
     <div
-      className="shrink-0 bg-neutral-900/95 backdrop-blur-xl border-t border-white/10 px-3 py-2 flex items-center gap-3 cursor-pointer"
-      onClick={() => navigate("/music")}
+      className="shrink-0 bg-neutral-900/95 backdrop-blur-xl border-t border-white/10 px-3 py-2 flex items-center gap-3 relative"
       data-testid="mini-player"
     >
-      <div className="w-9 h-9 rounded-lg overflow-hidden bg-neutral-800 shrink-0 relative">
-        {audio.currentTrack.cover ? (
-          <img src={audio.currentTrack.cover} alt={audio.currentTrack.album} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Music2 size={16} className="text-neutral-500" />
-          </div>
-        )}
-        {audio.isPlaying && (
-          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-            <div className="flex gap-0.5 items-end h-3">
-              <div className="w-0.5 bg-white rounded-full animate-pulse h-2" style={{ animationDelay: "0ms" }} />
-              <div className="w-0.5 bg-white rounded-full animate-pulse h-3" style={{ animationDelay: "150ms" }} />
-              <div className="w-0.5 bg-white rounded-full animate-pulse h-1.5" style={{ animationDelay: "300ms" }} />
+      <div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer" onClick={() => navigate("/music")}>
+        <div className="w-9 h-9 rounded-lg overflow-hidden bg-neutral-800 shrink-0 relative">
+          {audio.currentTrack.cover ? (
+            <img src={audio.currentTrack.cover} alt={audio.currentTrack.album} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Music2 size={16} className="text-neutral-500" />
             </div>
-          </div>
-        )}
+          )}
+          {audio.isPlaying && (
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <div className="flex gap-0.5 items-end h-3">
+                <div className="w-0.5 bg-white rounded-full animate-pulse h-2" style={{ animationDelay: "0ms" }} />
+                <div className="w-0.5 bg-white rounded-full animate-pulse h-3" style={{ animationDelay: "150ms" }} />
+                <div className="w-0.5 bg-white rounded-full animate-pulse h-1.5" style={{ animationDelay: "300ms" }} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-white truncate">{audio.currentTrack.title}</p>
+          <p className="text-[10px] text-neutral-400 truncate">{audio.currentTrack.artist}</p>
+        </div>
       </div>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-white truncate">{audio.currentTrack.title}</p>
-        <p className="text-[10px] text-neutral-400 truncate">{audio.currentTrack.artist}</p>
-      </div>
-
-      <div
-        className="flex items-center gap-2 shrink-0"
-        onClick={(e) => e.stopPropagation()}
-        onPointerDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
-        onTouchMove={(e) => e.stopPropagation()}
-      >
+      <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={audio.toggleMute}
           className="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
@@ -92,12 +87,7 @@ function InlineMiniPlayer() {
         >
           {audio.muted || audio.volume === 0 ? <VolumeX size={14} /> : audio.volume < 50 ? <Volume1 size={14} /> : <Volume2 size={14} />}
         </button>
-        <div
-          onPointerDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
-          className="w-24"
-        >
+        <div className="w-24">
           <Slider
             value={[audio.muted ? 0 : audio.volume]}
             max={100}
