@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { PodFrame } from "@/components/layout/PodFrame";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useAudio, type Track } from "@/contexts/AudioContext";
-import { useState } from "react";
 
 const genres = [
   { id: "chillout", label: "Chill" },
@@ -28,9 +27,11 @@ export default function Music() {
   const resetInactivityTimer = useCallback(() => {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     inactivityTimer.current = setTimeout(() => {
-      setLocation("/");
-    }, 10000);
-  }, [setLocation]);
+      if (!audio.isPlaying && !audio.isBuffering) {
+        setLocation("/");
+      }
+    }, 30000);
+  }, [setLocation, audio.isPlaying, audio.isBuffering]);
 
   useEffect(() => {
     resetInactivityTimer();
@@ -49,6 +50,8 @@ export default function Music() {
       if (!res.ok) throw new Error("Failed to load music");
       return res.json();
     },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const hasInitialized = useRef(false);
@@ -73,6 +76,7 @@ export default function Music() {
   };
 
   const handleChangeGenre = (genre: string) => {
+    hasInitialized.current = false;
     audio.changeGenre(genre);
     setShowPlaylist(false);
   };
@@ -188,7 +192,13 @@ export default function Music() {
                         className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-white/10"
                         data-testid="button-play-pause"
                       >
-                        {audio.isPlaying ? <Pause size={22} fill="currentColor" /> : <Play size={22} fill="currentColor" className="ml-0.5" />}
+                        {audio.isBuffering ? (
+                          <Loader2 size={22} className="animate-spin" />
+                        ) : audio.isPlaying ? (
+                          <Pause size={22} fill="currentColor" />
+                        ) : (
+                          <Play size={22} fill="currentColor" className="ml-0.5" />
+                        )}
                       </button>
                       <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white" onClick={audio.nextTrack} data-testid="button-next-track">
                         <SkipForward size={22} />
