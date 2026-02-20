@@ -59,7 +59,7 @@ export default function Music() {
       if (!hasInitialized.current && !audio.isPlaying) {
         hasInitialized.current = true;
         const randomIdx = Math.floor(Math.random() * fetchedTracks.length);
-        audio.selectTrack(randomIdx);
+        audio.selectTrack(randomIdx, false);
       }
     }
   }, [fetchedTracks]);

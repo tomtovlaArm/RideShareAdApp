@@ -28,7 +28,7 @@ interface AudioContextType {
   nextTrack: () => void;
   prevTrack: () => void;
   seekTo: (val: number[]) => void;
-  selectTrack: (idx: number) => void;
+  selectTrack: (idx: number, autoPlay?: boolean) => void;
   changeVolume: (val: number[]) => void;
   toggleMute: () => void;
   toggleLike: (id: string) => void;
@@ -44,7 +44,6 @@ export function useAudio() {
 }
 
 const globalAudio = new Audio();
-globalAudio.crossOrigin = "anonymous";
 
 let webAudioCtx: AudioContext | null = null;
 let gainNode: GainNode | null = null;
@@ -54,6 +53,7 @@ let webAudioInitialized = false;
 function initWebAudio() {
   if (webAudioInitialized) return;
   try {
+    globalAudio.crossOrigin = "anonymous";
     webAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     gainNode = webAudioCtx.createGain();
     sourceNode = webAudioCtx.createMediaElementSource(globalAudio);
@@ -136,6 +136,32 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setGainVolume(vol);
   }, [volume, muted]);
 
+  useEffect(() => {
+    const handlePlay = () => {
+      setIsPlaying(true);
+      startProgressTracking();
+    };
+    const handlePause = () => {
+      setIsPlaying(false);
+      stopProgressTracking();
+    };
+    const handleError = () => {
+      console.error("Audio playback error:", globalAudio.error);
+      setIsPlaying(false);
+      stopProgressTracking();
+    };
+
+    globalAudio.addEventListener("play", handlePlay);
+    globalAudio.addEventListener("pause", handlePause);
+    globalAudio.addEventListener("error", handleError);
+
+    return () => {
+      globalAudio.removeEventListener("play", handlePlay);
+      globalAudio.removeEventListener("pause", handlePause);
+      globalAudio.removeEventListener("error", handleError);
+    };
+  }, [startProgressTracking, stopProgressTracking]);
+
   const autoNextRef = useRef<(() => void) | null>(null);
 
   autoNextRef.current = () => {
@@ -151,11 +177,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       globalAudio.src = nextTrack.audioUrl;
       setGainVolume(muted ? 0 : volume / 100);
       resumeWebAudio();
-      globalAudio.play().catch(() => {});
-      setIsPlaying(true);
-      setProgress(0);
-      setCurrentTime(0);
-      startProgressTracking();
+      globalAudio.play().catch(() => {
+        setIsPlaying(false);
+        stopProgressTracking();
+      });
     } else {
       setIsPlaying(false);
       setProgress(0);
@@ -175,6 +200,14 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const safePlay = useCallback(() => {
+    return globalAudio.play().catch((err) => {
+      console.warn("Play blocked:", err.message);
+      setIsPlaying(false);
+      stopProgressTracking();
+    });
+  }, [stopProgressTracking]);
+
   const loadAndPlay = useCallback((track: Track) => {
     if (playingTrackId.current === track.id) return;
     initWebAudio();
@@ -182,12 +215,20 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     playingTrackId.current = track.id;
     globalAudio.src = track.audioUrl;
     setGainVolume(muted ? 0 : volume / 100);
-    globalAudio.play().catch(() => {});
-    setIsPlaying(true);
     setProgress(0);
     setCurrentTime(0);
-    startProgressTracking();
-  }, [muted, volume, startProgressTracking]);
+    safePlay();
+  }, [muted, volume, safePlay]);
+
+  const loadWithoutPlay = useCallback((track: Track) => {
+    playingTrackId.current = track.id;
+    globalAudio.src = track.audioUrl;
+    globalAudio.load();
+    setGainVolume(muted ? 0 : volume / 100);
+    setProgress(0);
+    setCurrentTime(0);
+    setIsPlaying(false);
+  }, [muted, volume]);
 
   const togglePlay = useCallback(() => {
     if (!currentTrack) return;
@@ -198,15 +239,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         playingTrackId.current = currentTrack.id;
         globalAudio.src = currentTrack.audioUrl;
       }
-      globalAudio.play().catch(() => {});
-      startProgressTracking();
-      setIsPlaying(true);
+      safePlay();
     } else {
       globalAudio.pause();
-      stopProgressTracking();
-      setIsPlaying(false);
     }
-  }, [currentTrack, startProgressTracking, stopProgressTracking]);
+  }, [currentTrack, safePlay]);
 
   const nextTrack = useCallback(() => {
     const t = tracksRef.current;
@@ -234,13 +271,17 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setProgress(pct);
   }, []);
 
-  const selectTrack = useCallback((idx: number) => {
+  const selectTrack = useCallback((idx: number, autoPlay = true) => {
     const t = tracksRef.current;
     if (idx < 0 || idx >= t.length) return;
     setCurrentTrackIndexState(idx);
     playingTrackId.current = null;
-    loadAndPlay(t[idx]);
-  }, [loadAndPlay]);
+    if (autoPlay) {
+      loadAndPlay(t[idx]);
+    } else {
+      loadWithoutPlay(t[idx]);
+    }
+  }, [loadAndPlay, loadWithoutPlay]);
 
   const changeVolume = useCallback((val: number[]) => {
     const v = val[0];
