@@ -44,6 +44,8 @@ export function useAudio() {
 }
 
 const globalAudio = new Audio();
+globalAudio.crossOrigin = "anonymous";
+globalAudio.preload = "auto";
 
 let webAudioCtx: AudioContext | null = null;
 let gainNode: GainNode | null = null;
@@ -53,7 +55,6 @@ let webAudioInitialized = false;
 function initWebAudio() {
   if (webAudioInitialized) return;
   try {
-    globalAudio.crossOrigin = "anonymous";
     webAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     gainNode = webAudioCtx.createGain();
     sourceNode = webAudioCtx.createMediaElementSource(globalAudio);
