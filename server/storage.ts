@@ -60,23 +60,8 @@ export async function seedDefaultAds() {
   const existing = await storage.getAllAds();
 
   if (existing.length > 0) {
-    console.log(`Found ${existing.length} existing ads, checking for migration...`);
-    let migrated = 0;
-    for (const ad of existing) {
-      if (ad.mediaUrl && (ad.mediaUrl.startsWith("/assets/") || ad.mediaUrl.startsWith("/uploads/"))) {
-        await storage.deleteAd(ad.id);
-        migrated++;
-      }
-    }
-    if (migrated > 0) {
-      console.log(`Removed ${migrated} ads with outdated local file paths`);
-    }
-    const remaining = await storage.getAllAds();
-    if (remaining.length > 0) {
-      console.log(`${remaining.length} ads remain after migration`);
-      return;
-    }
-    console.log("No valid ads remain, re-seeding with defaults...");
+    console.log(`Found ${existing.length} existing ads, skipping seed`);
+    return;
   }
 
   const defaultAds: InsertAd[] = [
