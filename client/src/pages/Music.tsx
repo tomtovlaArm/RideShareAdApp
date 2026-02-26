@@ -18,9 +18,6 @@ const genres = [
   { id: "hiphop", label: "Hip Hop" },
 ];
 
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
 export default function Music() {
   const [, setLocation] = useLocation();
   const [showPlaylist, setShowPlaylist] = useState(false);
@@ -217,27 +214,18 @@ export default function Music() {
                     </div>
 
                     <div className="flex items-center gap-2 mt-3">
-                      {isIOS ? (
-                        <>
-                          <Volume2 size={16} className="text-neutral-400 shrink-0" />
-                          <span className="text-[11px] text-neutral-500">Use device volume buttons</span>
-                        </>
-                      ) : (
-                        <>
-                          <button onClick={audio.toggleMute} className="text-neutral-400 hover:text-white transition-colors" data-testid="button-mute">
-                            {audio.muted || audio.volume === 0 ? <VolumeX size={16} /> : audio.volume < 50 ? <Volume1 size={16} /> : <Volume2 size={16} />}
-                          </button>
-                          <Slider
-                            value={[audio.muted ? 0 : audio.volume]}
-                            max={100}
-                            step={1}
-                            className="w-full cursor-pointer"
-                            onValueChange={audio.changeVolume}
-                            data-testid="slider-volume"
-                          />
-                          <span className="text-[10px] text-neutral-500 font-mono w-7 text-right shrink-0">{audio.muted ? 0 : audio.volume}%</span>
-                        </>
-                      )}
+                      <button onClick={audio.toggleMute} className="text-neutral-400 hover:text-white transition-colors" data-testid="button-mute">
+                        {audio.muted || audio.volume === 0 ? <VolumeX size={16} /> : audio.volume < 50 ? <Volume1 size={16} /> : <Volume2 size={16} />}
+                      </button>
+                      <Slider
+                        value={[audio.muted ? 0 : audio.volume]}
+                        max={100}
+                        step={1}
+                        className="w-full cursor-pointer"
+                        onValueChange={audio.changeVolume}
+                        data-testid="slider-volume"
+                      />
+                      <span className="text-[10px] text-neutral-500 font-mono w-7 text-right shrink-0">{audio.muted ? 0 : audio.volume}%</span>
                     </div>
                   </div>
                 </motion.div>

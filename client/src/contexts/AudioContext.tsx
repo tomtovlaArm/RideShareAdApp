@@ -47,9 +47,38 @@ export function useAudio() {
 const sharedAudio = (() => {
   const a = new Audio();
   a.preload = "auto";
-  a.volume = 0.8;
   return a;
 })();
+
+let webAudioCtx: AudioContext | null = null;
+let gainNode: GainNode | null = null;
+let sourceNode: MediaElementAudioSourceNode | null = null;
+
+function ensureWebAudio() {
+  if (webAudioCtx) return;
+  try {
+    webAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    sourceNode = webAudioCtx.createMediaElementSource(sharedAudio);
+    gainNode = webAudioCtx.createGain();
+    gainNode.gain.value = 0.8;
+    sourceNode.connect(gainNode);
+    gainNode.connect(webAudioCtx.destination);
+  } catch (err) {
+    console.warn("Web Audio API init failed:", err);
+  }
+}
+
+function setGainVolume(vol: number) {
+  if (gainNode) {
+    gainNode.gain.value = vol;
+  }
+}
+
+function resumeWebAudio() {
+  if (webAudioCtx && webAudioCtx.state === "suspended") {
+    webAudioCtx.resume().catch(console.warn);
+  }
+}
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [tracks, setTracksState] = useState<Track[]>([]);
@@ -154,11 +183,15 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [audio, startProgressLoop, stopProgressLoop]);
 
   useEffect(() => {
-    audio.volume = muted ? 0 : volume / 100;
+    const vol = muted ? 0 : volume / 100;
+    setGainVolume(vol);
+    try { audio.volume = vol; } catch (_) {}
   }, [audio, volume, muted]);
 
   const playTrack = useCallback(async (track: Track) => {
     try {
+      ensureWebAudio();
+      resumeWebAudio();
       loadedTrackIdRef.current = track.id;
       audio.src = track.audioUrl;
       setIsBuffering(true);
@@ -175,6 +208,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const togglePlay = useCallback(() => {
     const track = tracksRef.current[currentTrackIndex];
     if (!track) return;
+
+    ensureWebAudio();
+    resumeWebAudio();
 
     if (audio.paused) {
       if (loadedTrackIdRef.current === track.id && audio.src) {
