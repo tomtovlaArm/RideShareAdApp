@@ -30,7 +30,7 @@ export default function Music() {
       if (!audio.isPlaying && !audio.isBuffering) {
         setLocation("/");
       }
-    }, 30000);
+    }, 15000);
   }, [setLocation, audio.isPlaying, audio.isBuffering]);
 
   useEffect(() => {
@@ -59,13 +59,16 @@ export default function Music() {
   useEffect(() => {
     if (fetchedTracks.length > 0) {
       audio.setTracks(fetchedTracks);
-      if (!hasInitialized.current && !audio.isPlaying) {
-        hasInitialized.current = true;
-        const randomIdx = Math.floor(Math.random() * fetchedTracks.length);
-        audio.selectTrack(randomIdx, false);
-      }
     }
   }, [fetchedTracks]);
+
+  useEffect(() => {
+    if (audio.tracks.length > 0 && !hasInitialized.current && !audio.isPlaying) {
+      hasInitialized.current = true;
+      const randomIdx = Math.floor(Math.random() * audio.tracks.length);
+      audio.selectTrack(randomIdx, false);
+    }
+  }, [audio.tracks, audio.isPlaying, audio.selectTrack]);
 
   const currentTrack = audio.currentTrack;
 

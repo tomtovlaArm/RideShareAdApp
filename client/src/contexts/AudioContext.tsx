@@ -254,6 +254,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const setTracks = useCallback((newTracks: Track[]) => {
     setTracksState(prev => {
       if (prev.length > 0 && prev[0]?.id === newTracks[0]?.id) return prev;
+      tracksRef.current = newTracks;
       return newTracks;
     });
   }, []);
