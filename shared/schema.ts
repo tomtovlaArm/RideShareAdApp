@@ -38,3 +38,13 @@ export const insertAdSchema = createInsertSchema(ads).omit({
 
 export type Ad = typeof ads.$inferSelect;
 export type InsertAd = z.infer<typeof insertAdSchema>;
+
+export const mediaFiles = pgTable("media_files", {
+  id: serial("id").primaryKey(),
+  filename: text("filename").notNull(),
+  mimeType: text("mime_type").notNull(),
+  data: text("data").notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export type MediaFile = typeof mediaFiles.$inferSelect;

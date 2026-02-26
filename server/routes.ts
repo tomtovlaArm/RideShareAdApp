@@ -5,7 +5,6 @@ import { insertAdSchema } from "@shared/schema";
 import OpenAI from "openai";
 import multer from "multer";
 import path from "path";
-import fs from "fs";
 
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -18,22 +17,8 @@ const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
-const isProd = process.env.NODE_ENV === "production";
-const uploadDir = isProd
-  ? path.join("/tmp", "uploads")
-  : path.join(process.cwd(), "client/public/assets/uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: uploadDir,
-    filename: (_req, file, cb) => {
-      const uniqueName = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
-      cb(null, uniqueName);
-    },
-  }),
+  storage: multer.memoryStorage(),
   fileFilter: (_req, file, cb) => {
     const allowed = /\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i;
     if (allowed.test(path.extname(file.originalname))) {
@@ -42,17 +27,37 @@ const upload = multer({
       cb(new Error("Only image and video files are allowed"));
     }
   },
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
+
+async function saveUploadedFile(file: Express.Multer.File): Promise<string> {
+  const base64Data = file.buffer.toString("base64");
+  const saved = await storage.saveMediaFile(file.originalname, file.mimetype, base64Data);
+  return `/api/media/${saved.id}`;
+}
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  if (isProd) {
-    const express = await import("express");
-    app.use("/uploads", express.default.static(uploadDir));
-  }
+  app.get("/api/media/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ error: "Invalid media ID" });
+      const file = await storage.getMediaFile(id);
+      if (!file) return res.status(404).json({ error: "File not found" });
+
+      const buffer = Buffer.from(file.data, "base64");
+      res.setHeader("Content-Type", file.mimeType);
+      res.setHeader("Content-Length", buffer.length);
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error serving media:", error);
+      res.status(500).json({ error: "Failed to serve media" });
+    }
+  });
+
   app.get("/api/trivia", async (req, res) => {
     try {
       const count = Math.min(parseInt(req.query.count as string) || 5, 10);
@@ -130,9 +135,7 @@ The correctAnswer MUST exactly match one of the options.`,
     try {
       let mediaUrl = req.body.mediaUrl || "";
       if (req.file) {
-        mediaUrl = isProd
-          ? `/uploads/${req.file.filename}`
-          : `/assets/uploads/${req.file.filename}`;
+        mediaUrl = await saveUploadedFile(req.file);
       }
 
       if (!mediaUrl) {
@@ -178,7 +181,7 @@ The correctAnswer MUST exactly match one of the options.`,
       if (req.body.qrUrl !== undefined) updateData.qrUrl = req.body.qrUrl;
       if (req.body.sortOrder !== undefined) updateData.sortOrder = parseInt(req.body.sortOrder);
       if (req.body.displayDuration !== undefined) updateData.displayDuration = parseInt(req.body.displayDuration);
-      if (req.file) updateData.mediaUrl = isProd ? `/uploads/${req.file.filename}` : `/assets/uploads/${req.file.filename}`;
+      if (req.file) updateData.mediaUrl = await saveUploadedFile(req.file);
       else if (req.body.mediaUrl !== undefined) updateData.mediaUrl = req.body.mediaUrl;
 
       const updated = await storage.updateAd(id, updateData);
@@ -303,7 +306,7 @@ The correctAnswer MUST exactly match one of the options.`,
   app.post("/api/upload", upload.single("media"), async (req, res) => {
     try {
       if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-      const fileUrl = isProd ? `/uploads/${req.file.filename}` : `/assets/uploads/${req.file.filename}`;
+      const fileUrl = await saveUploadedFile(req.file);
       res.json({ url: fileUrl });
     } catch (error) {
       console.error("Error uploading file:", error);

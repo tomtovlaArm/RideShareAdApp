@@ -44,9 +44,12 @@ Preferred communication style: Simple, everyday language.
 - **Schema Location**: `shared/schema.ts` (main schema) and `shared/models/chat.ts` (chat models)
 - **Tables**:
   - `users` — Basic user table with id (UUID), username, password
+  - `ads` — Advertisement entries with media URLs, display settings, and QR codes
+  - `media_files` — Uploaded media files stored as base64 in database (persists across deploys)
   - `conversations` — Chat conversations with id, title, createdAt
   - `messages` — Chat messages with id, conversationId (FK), role, content, createdAt
-- **Current Storage**: The app uses an in-memory storage implementation (`MemStorage`) for users in `server/storage.ts`, but the chat integration uses the actual database via Drizzle
+- **Media Storage**: Uploaded files are stored in the `media_files` table as base64-encoded text and served via `/api/media/:id`. This ensures uploads survive server restarts and republishes. External URLs (Dropbox, etc.) are also supported for larger files.
+- **Current Storage**: `DatabaseStorage` class in `server/storage.ts` implements all CRUD operations via Drizzle ORM
 - **Schema Push**: Use `npm run db:push` (drizzle-kit push) to sync schema to database
 - **Environment**: Requires `DATABASE_URL` environment variable for PostgreSQL connection
 

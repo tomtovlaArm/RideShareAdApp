@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Ad, type InsertAd, users, ads } from "@shared/schema";
+import { type User, type InsertUser, type Ad, type InsertAd, type MediaFile, users, ads, mediaFiles } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc } from "drizzle-orm";
 
@@ -11,6 +11,8 @@ export interface IStorage {
   createAd(ad: InsertAd): Promise<Ad>;
   updateAd(id: number, ad: Partial<InsertAd>): Promise<Ad | undefined>;
   deleteAd(id: number): Promise<void>;
+  saveMediaFile(filename: string, mimeType: string, data: string): Promise<MediaFile>;
+  getMediaFile(id: number): Promise<MediaFile | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -50,6 +52,16 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAd(id: number): Promise<void> {
     await db.delete(ads).where(eq(ads.id, id));
+  }
+
+  async saveMediaFile(filename: string, mimeType: string, data: string): Promise<MediaFile> {
+    const [file] = await db.insert(mediaFiles).values({ filename, mimeType, data }).returning();
+    return file;
+  }
+
+  async getMediaFile(id: number): Promise<MediaFile | undefined> {
+    const [file] = await db.select().from(mediaFiles).where(eq(mediaFiles.id, id));
+    return file;
   }
 }
 
