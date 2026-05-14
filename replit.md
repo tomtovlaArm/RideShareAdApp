@@ -68,6 +68,17 @@ The project includes pre-built Replit integration modules in both client and ser
 - **Build**: `npm run build` runs a custom build script that builds the Vite client and bundles the server with esbuild. Server dependencies are selectively bundled (allowlisted) or externalized
 - **Production**: `npm start` runs the bundled `dist/index.cjs`
 
+## Keep-Alive Setup (Production)
+
+The app is deployed as **autoscale** on Replit (goes to sleep when idle). Two mechanisms keep it alive:
+
+1. **Self-ping** (`server/index.ts`): In production, the server pings its own `/health` endpoint every 4 minutes via `setInterval`. This prevents the autoscale platform from shutting it down between external pings.
+2. **UptimeRobot** (external): Free account set up at uptimerobot.com, monitoring `https://uber-ad-trivia.replit.app/health` every 5 minutes. Sends email alerts to Tom Tomasy if the app goes down.
+
+The `/health` endpoint is registered in `server/routes.ts` and returns `{ status: "ok", timestamp: "..." }`.
+
+**Published URL**: `https://uber-ad-trivia.replit.app`
+
 ## External Dependencies
 
 - **PostgreSQL**: Primary database, connected via `DATABASE_URL` environment variable
