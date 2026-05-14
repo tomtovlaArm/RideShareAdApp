@@ -106,6 +106,14 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+
+      if (process.env.NODE_ENV === "production") {
+        setInterval(() => {
+          fetch(`http://localhost:${port}/health`)
+            .then(() => log("self-ping ok"))
+            .catch((e) => log(`self-ping failed: ${e.message}`));
+        }, 4 * 60 * 1000);
+      }
     },
   );
 })();
