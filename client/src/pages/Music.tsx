@@ -55,8 +55,9 @@ export default function Music() {
       if (!res.ok) throw new Error("Failed to load music");
       return res.json();
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const hasInitialized = useRef(false);
@@ -68,12 +69,17 @@ export default function Music() {
   }, [fetchedTracks]);
 
   useEffect(() => {
-    if (audio.tracks.length > 0 && !hasInitialized.current && !audio.isPlaying) {
+    if (audio.tracks.length > 0 && !hasInitialized.current) {
       hasInitialized.current = true;
       const randomIdx = Math.floor(Math.random() * audio.tracks.length);
       audio.selectTrack(randomIdx, false);
+    } else if (audio.tracks.length > 0 && hasInitialized.current && !audio.isPlaying) {
+      const currentTrack = audio.tracks[audio.currentTrackIndex];
+      if (currentTrack) {
+        audio.selectTrack(audio.currentTrackIndex, false);
+      }
     }
-  }, [audio.tracks, audio.isPlaying, audio.selectTrack]);
+  }, [audio.tracks]);
 
   const currentTrack = audio.currentTrack;
 
