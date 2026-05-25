@@ -277,7 +277,12 @@ The correctAnswer MUST exactly match one of the options.`,
       }
 
       const mime = getMimeFromUrl(url);
-      const response = await fetch(url, { redirect: "follow" });
+      const rangeHeader = req.headers["range"];
+
+      const fetchHeaders: Record<string, string> = {};
+      if (rangeHeader) fetchHeaders["Range"] = rangeHeader;
+
+      const response = await fetch(url, { redirect: "follow", headers: fetchHeaders });
 
       if (!response.ok || !response.body) {
         return res.status(502).json({ error: "Failed to fetch media" });
@@ -285,10 +290,17 @@ The correctAnswer MUST exactly match one of the options.`,
 
       const contentType = mime || response.headers.get("content-type") || "application/octet-stream";
       const contentLength = response.headers.get("content-length");
+      const contentRange = response.headers.get("content-range");
+      const acceptRanges = response.headers.get("accept-ranges");
 
       res.setHeader("Content-Type", contentType);
-      res.setHeader("Cache-Control", "public, max-age=86400");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      res.setHeader("Accept-Ranges", acceptRanges || "bytes");
       if (contentLength) res.setHeader("Content-Length", contentLength);
+      if (contentRange) res.setHeader("Content-Range", contentRange);
+
+      const statusCode = response.status === 206 ? 206 : 200;
+      res.status(statusCode);
 
       const reader = response.body.getReader();
       const pump = async () => {
