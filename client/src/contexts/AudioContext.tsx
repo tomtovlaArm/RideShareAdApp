@@ -50,11 +50,17 @@ const sharedAudio = (() => {
   return a;
 })();
 
+function isIOS(): boolean {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 let webAudioCtx: AudioContext | null = null;
 let gainNode: GainNode | null = null;
 let sourceNode: MediaElementAudioSourceNode | null = null;
 
 function ensureWebAudio() {
+  if (isIOS()) return;
   if (webAudioCtx) return;
   try {
     webAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -72,6 +78,7 @@ function setGainVolume(vol: number) {
   if (gainNode) {
     gainNode.gain.value = vol;
   }
+  try { sharedAudio.volume = vol; } catch (_) {}
 }
 
 async function resumeWebAudio() {
