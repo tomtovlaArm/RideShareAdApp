@@ -128,7 +128,7 @@ export function PodFrame({ children, className, onBack, showBack }: PodFrameProp
 
   if (isFullscreen) {
     return (
-      <div className="h-screen w-screen bg-black font-sans text-white overflow-hidden relative flex flex-col">
+      <div className="bg-black font-sans text-white overflow-hidden relative flex flex-col" style={{ width: "100dvw", height: "100dvh" }}>
         {showBack && (
           <button
             onClick={onBack}
