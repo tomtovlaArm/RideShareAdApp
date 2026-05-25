@@ -79,6 +79,12 @@ The `/health` endpoint is registered in `server/routes.ts` and returns `{ status
 
 **Published URL**: `https://uber-ad-trivia.replit.app`
 
+## Known Outstanding Issues (to revisit)
+
+- **Music on iPad** — silent audio fix deployed (awaiting confirmation it works). Root cause was iOS Web Audio context not being awaited before playback.
+- **Video on iPad** — range request fix deployed. App was crashing because Safari requires chunked/range video streaming which wasn't supported.
+- **General iPad performance** — app works but "poorly" per user. May need further testing on actual device.
+
 ## External Dependencies
 
 - **PostgreSQL**: Primary database, connected via `DATABASE_URL` environment variable
