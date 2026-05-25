@@ -74,9 +74,9 @@ function setGainVolume(vol: number) {
   }
 }
 
-function resumeWebAudio() {
+async function resumeWebAudio() {
   if (webAudioCtx && webAudioCtx.state === "suspended") {
-    webAudioCtx.resume().catch(console.warn);
+    await webAudioCtx.resume().catch(console.warn);
   }
 }
 
@@ -191,7 +191,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const playTrack = useCallback(async (track: Track) => {
     try {
       ensureWebAudio();
-      resumeWebAudio();
+      await resumeWebAudio();
       loadedTrackIdRef.current = track.id;
       audio.src = track.audioUrl;
       setIsBuffering(true);
@@ -205,12 +205,12 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   }, [audio]);
 
-  const togglePlay = useCallback(() => {
+  const togglePlay = useCallback(async () => {
     const track = tracksRef.current[currentTrackIndex];
     if (!track) return;
 
     ensureWebAudio();
-    resumeWebAudio();
+    await resumeWebAudio();
 
     if (audio.paused) {
       if (loadedTrackIdRef.current === track.id && audio.src) {
