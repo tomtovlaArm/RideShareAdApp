@@ -12,10 +12,19 @@ function formatDuration(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+let _openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+      throw new Error("OpenAI API key (AI_INTEGRATIONS_OPENAI_API_KEY) is not configured");
+    }
+    _openai = new OpenAI({
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    });
+  }
+  return _openai;
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -66,7 +75,7 @@ export async function registerRoutes(
     try {
       const count = Math.min(parseInt(req.query.count as string) || 5, 10);
 
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: "gpt-4.1-mini",
         messages: [
           {
@@ -218,7 +227,7 @@ The correctAnswer MUST exactly match one of the options.`,
       const limit = Math.min(parseInt(req.query.limit as string) || 10, 20);
       const offset = parseInt(req.query.offset as string) || 0;
 
-      const apiUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=${clientId}&format=json&limit=${limit}&offset=${offset}&tags=${encodeURIComponent(tags)}&include=musicinfo&audioformat=mp32&order=popularity_total`;
+      const apiUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=${clientId}&format=json&limit=${limit}&offset=${offset}&tags=${encodeURIComponent(tags)}&include=musicinfo&audioformat=mp32&audiodlformat=mp32&order=popularity_total`;
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000);
@@ -227,17 +236,19 @@ The correctAnswer MUST exactly match one of the options.`,
       if (!response.ok) throw new Error("Jamendo API error");
       const data = await response.json();
 
-      const tracks = (data.results || []).map((t: any) => ({
-        id: t.id,
-        title: t.name,
-        artist: t.artist_name,
-        album: t.album_name || "",
-        cover: t.album_image || t.image,
-        duration: formatDuration(t.duration),
-        durationSec: t.duration,
-        audioUrl: t.audio,
-        audioDownload: t.audiodownload,
-      }));
+      const tracks = (data.results || [])
+        .map((t: any) => ({
+          id: String(t.id),
+          title: t.name,
+          artist: t.artist_name,
+          album: t.album_name || "",
+          cover: t.album_image || t.image || "",
+          duration: formatDuration(t.duration),
+          durationSec: t.duration,
+          audioUrl: t.audiodownload || t.audio || "",
+          audioDownload: t.audiodownload || "",
+        }))
+        .filter((t: any) => t.audioUrl);
 
       res.json(tracks);
     } catch (error) {
@@ -270,9 +281,13 @@ The correctAnswer MUST exactly match one of the options.`,
   }
 
   app.get("/api/media-proxy", async (req, res) => {
+    const controller = new AbortController();
+    const proxyTimeout = setTimeout(() => controller.abort(), 30000);
+
     try {
       const url = req.query.url as string;
       if (!url || !url.startsWith("https://")) {
+        clearTimeout(proxyTimeout);
         return res.status(400).json({ error: "Invalid URL" });
       }
 
@@ -282,7 +297,8 @@ The correctAnswer MUST exactly match one of the options.`,
       const fetchHeaders: Record<string, string> = {};
       if (rangeHeader) fetchHeaders["Range"] = rangeHeader;
 
-      const response = await fetch(url, { redirect: "follow", headers: fetchHeaders });
+      const response = await fetch(url, { redirect: "follow", headers: fetchHeaders, signal: controller.signal });
+      clearTimeout(proxyTimeout);
 
       if (!response.ok || !response.body) {
         return res.status(502).json({ error: "Failed to fetch media" });
@@ -313,7 +329,13 @@ The correctAnswer MUST exactly match one of the options.`,
         }
       };
       pump().catch(() => res.end());
-    } catch (error) {
+    } catch (error: any) {
+      clearTimeout(proxyTimeout);
+      if (error.name === "AbortError") {
+        console.warn("Media proxy timed out for URL:", req.query.url);
+        if (!res.headersSent) return res.status(504).json({ error: "Media fetch timed out" });
+        return res.end();
+      }
       console.error("Media proxy error:", error);
       if (!res.headersSent) res.status(500).json({ error: "Proxy failed" });
     }
